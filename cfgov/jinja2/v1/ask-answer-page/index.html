@@ -1,36 +1,65 @@
 {% extends 'layout-2-1-bleedbar.html' %}
 
 {% import 'macros/time.html' as time %}
+{% import 'blocks/feedback.html' as feedback_template with context %}
+{% import 'tags.html' as tags with context %}
+
+
+
+
+{% if page.language == 'en' and about_us %}        
+    {% block banner_top scoped %}
+        {% set value = about_us.first() %}
+        {% include 'organisms/banner.html' with context %}
+    {% endblock %}
+{% endif %}
 
 {% block content_main_modifiers -%}
     {{ super() }} content__flush-bottom
 {%- endblock %}
 
 {% block content_main %}
-
-{% import 'molecules/social-media.html' as social_media with context %}
-    <section class="block
-                    block__flush-top
-                    block__sub">
-        <h1>{{ page.question | striptags }}</h1>
-    </section>
-
-    <section class="block
-                    block__padded-top
-                    block__border-top">
-        {% if page.language == 'es' %}
-        <h2>Respuesta</h2>
-        {% else %}
-        <h2>Answer</h2>
-        {% endif %}
+    <div class="block block__flush-top block__sub">
+        <h2>{{ page.question | striptags }}</h2>
+    </div>  
+     <div class="block block__flush-top">        
         {% if page.snippet %}
-        <h3 class="answer-snippet">{{ page.snippet | safe }}</h3>
+            <h3 class="answer-snippet">
+                <strong>
+                    {% if page.language == 'es' %}
+                        Respuesta:
+                    {% else %}
+                        Answer:
+                    {% endif %}
+                </strong>
+                {{ page.snippet | safe }}
+            </h3>
         {% endif %}
-        <p> {{ page.answer | safe }} </p>
 
-    </section>
+    </div>
+    <div class="read-more read-more__collapsed">
+        <div class="read-more_content" id="answer-content">
+            <div class="answer-text read-more_text read-more_text__uniform">
+                {{ page.answer | safe }}
+            </div>
+            {{ tags.render(page.answer_base.audience_strings(), '/askcfpb/search/') }}
 
-
+            {{- feedback_template.render({'was_it_helpful_text': 'Was this page helpful to you?', 'button_text': 'Submit'}, {'form': feedback}, 'feedback-form-content-0') -}}
+            <div class="read-more_gradient"></div>
+        </div>
+        <a class="read-more_target jump-link" title="Expand content">
+                <span class="read-more_link jump-link_text">
+                  <span class="read-more_cue-open">
+                    Read full answer
+                    <span class="cf-icon cf-icon-plus-round"></span>
+                  </span>
+                  <span class="read-more_cue-close">
+                    Hide full answer
+                    <span class="cf-icon cf-icon-minus-round"></span>
+                  </span>
+                </span>
+        </a>
+    </div>
 
 {% endblock %}
 
@@ -39,31 +68,65 @@
 {%- endblock %}
 
 {% block content_sidebar scoped  %}
-<div class="block block__flush-top">
-</div>
-<p data-qa-hook="info-section-desc">
+
     {% if page.language == 'en' and page.answer_base.next_step %}
-    <h3>Next steps</h3>
-    <p><strong>{{ page.answer_base.next_step.title }}</strong></p>
-    {{page.answer_base.next_step.text|safe}}
+        <div class="block block__flush-top">
+            <h3 >
+                Next steps 
+            </h3>
+
+            {{ parse_links(page.answer_base.next_step.text) | safe }}
+        </div>
     {% endif %}
+
+    <div class="block">
+        <div class="m-related-links">
+            {% if page.answer_base.category_text() %}
+
+            <h2 class="header-slug">
+                <span class="header-slug_inner">
+                    Related {{page.answer_base.category_text()[0]}} subjects
+                    
+                </span>
+            </h2>
+            <ul class="list list__unstyled list__links">
+                {% for link in [{'url': '#', 'text': 'Topic'}, {'url': '#', 'text': 'Topic'}] %}
+                    <li class="list_item">
+                        <a href="{{ link.url }}" class="list_link">{{ link.text }}</a>
+                    </li>
+                {% endfor %}
+                <li class="list_item">
+                  <a class="btn category-button" href="" data="{{page.question_topic|lower}}">            
+                    See all {{page.answer_base.category_text()[0] | lower}} questions
+                  </a>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="block">
+        <div class="m-related-links">
+            <h2 class="header-slug">
+                <span class="header-slug_inner">
+                    Related questions
+                </span>
+            </h2>
+             <ul class="list list__unstyled list__links">
+                {% for link in [{'url': '#', 'text': 'How can I protect myself and others I care about from fraud and scams? '}, {'url': '#', 'text': 'I think I or someone I know was the victim of a scam or financial exploitation. Who can I contact for help?'}] %}
+                    <li class="list_item">
+                        <a href="{{ link.url }}" class="list_link">{{ link.text }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
     {% if page.language == 'es' %}
-    Somos la nueva agencia federal que trabaja para que los productos y servicios financieros sean más justos y transparentes para usted y su familia.
-    <h4>Más recursos</h4>
-    <a href="/retirement/before-you-claim/es/" target="_blank">Cómo planificar su jubilación</a><br>
-    <a href="/sending-money/es/" target="_blank">¿Envía dinero al extranjero?</a><br>
-    <a href="http://promotions.usa.gov/cfpbpubs.html#anuncios" target="_blank">Folletos de información</a>
-    {% else %}
-    The CFPB is one of the most searched for agencies
-    in the federal government.
-    Connect with us to stay updated on the work
-    we do and new opportunities to be a part of it.
+        Somos la nueva agencia federal que trabaja para que los productos y servicios financieros sean más justos y transparentes para usted y su familia.
+        <h4>Más recursos</h4>
+        <a href="/retirement/before-you-claim/es/" target="_blank">Cómo planificar su jubilación</a><br>
+        <a href="/sending-money/es/" target="_blank">¿Envía dinero al extranjero?</a><br>
+        <a href="http://promotions.usa.gov/cfpbpubs.html#anuncios" target="_blank">Folletos de información</a>
     {% endif %}
-</p>
-{% if page.language == 'en' %}
-<a href="https://www.linkedin.com/company/consumer-financial-protection-bureau"
-   class="jump-link jump-link__external-link jump-link__underline">
-    Follow us on LinkedIn
-</a>
-{% endif %}
 {% endblock %}

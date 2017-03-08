@@ -1,0 +1,96 @@
+.content_main .content_wrapper {
+	background-color: @gray-5;
+}
+
+a.partially-styled-link {
+  border-bottom-width: 0px;
+  
+  .unstyled {
+    color: @black;
+    border-bottom: 1px dotted white;
+  }
+  
+  .styled {
+    border-bottom: 1px dotted @link-underline;
+  }
+  
+  &:visited .styled {
+    border-bottom: 1px dotted @link-underline-visited;
+  }
+  
+  &:hover span,
+  &:focus span {
+    border-bottom: 1px solid @link-underline-hover !important;
+  }
+  
+  &:active span {    
+    border-bottom: 1px solid @link-underline-active !important;
+  }  
+}
+
+.list__flush-sides {
+	padding-left: 1em;
+}
+
+.m-card {
+	margin: unit( (@grid_gutter-width / 2) / @base-font-size-px, em ) 0;
+
+	h2 {
+      .respond-to-range(@bp-sm-min, @bp-sm-max, {
+        .h3();
+      });
+    }
+
+    h2 a  {
+      color: @black;
+    }
+
+}
+
+
+.category-icon {
+
+  &.auto-loans {
+    .cf-icon-buying-car;
+  }
+
+  &.bank-accounts-and-services {
+    .cf-icon-bank-account;
+  }
+  
+  &.credit-cards {
+    .cf-icon-credit-card;
+  }
+  
+  &.credit-reporting {
+    .cf-icon-loan;
+  }
+  
+  &.debt-collection {
+    .cf-icon-debt-collection;
+  }
+  
+  &.families-money {
+    .cf-icon-money;
+  }
+  
+  &.money-transfers {
+    .cf-icon-money-transfer;
+  }
+  
+  &.mortgages {
+    .cf-icon-owning-home;
+  }
+  
+  &.payday-loans {
+    .cf-icon-payday-loan;
+  }
+  
+  &.prepaid-cards {
+    .cf-icon-prepaid-cards;
+  }
+  
+  &.student-loans {
+    .cf-icon-paying-college;
+  }
+}

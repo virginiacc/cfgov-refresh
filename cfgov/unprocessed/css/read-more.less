@@ -1,0 +1,63 @@
+.read-more_target {
+  display: none;
+}
+
+.respond-to-max(599px, {
+  .read-more {
+    &_content {
+      position: relative;
+    }
+    
+    &__collapsed {
+      .read-more_content {
+        max-height: 88px;
+        overflow: hidden;
+
+
+      }
+    
+      .read-more_cue-close {
+        display: none;
+      }
+      
+      .read-more_gradient {
+        position: absolute; 
+        bottom: 0; 
+        left: 0;
+        width: 100%; 
+        text-align: center; 
+        margin: 0; 
+        height: 44px; 
+        background: -moz-linear-gradient( bottom, rgb(255, 255, 255) 0%, rgba(255, 255, 255, 0) 100% );
+        background: -webkit-gradient( linear, bottom, top, color-stop(0%, rgb(255, 255, 255)), color-stop(100%, rgba(255, 255, 255, 0)) );
+        background: -webkit-linear-gradient( bottom, rgb(255,255,255) 0%, rgba(255, 255, 255, 0) 100% );
+        background: -o-linear-gradient( bottom, rgb(255,255,255) 0%, rgba(255, 255, 255, 0) 100% );
+        background: -ms-linear-gradient( bottom, rgb(255,255,255) 0%, rgba(255, 255, 255, 0) 100% );
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#03ffffff', endColorstr='#ffffff', GradientType=0 );
+        background: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%);
+        background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, rgba(255, 255, 255, 0)), color-stop(100%, rgb(255, 255, 255))); // for old android
+      }
+      
+    }
+    &__expanded {
+      .read-more_cue-open {
+        display: none;
+      }
+    }
+  
+    &_target {
+      display: block;
+      text-align: center;
+      margin-top: unit( (@grid_gutter-width / 2) / @base-font-size-px, em);
+      margin-bottom: unit(@grid_gutter-width / @base-font-size-px, em);
+      width: 100%;
+      cursor: pointer;
+      background-color: white;
+
+      &:focus {
+        outline: 1px dotted @expandable-focus;
+        outline-offset: 1px;
+      }
+    }
+  }
+});

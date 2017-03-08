@@ -1,0 +1,40 @@
+/* topdoc
+  name: Banner
+  family: cfgov-organism
+  patterns:
+    - name: Default example
+      markup: |
+          <div class="o-banner">
+              <div class="o-banner-content">
+              </div>
+          </div>
+      codenotes:
+        - |
+          Structural cheat sheet:
+          -----------------------
+          .o-banner
+            .o-banner-content
+            
+  tags:
+    - cfgov-organisms
+*/
+
+@o-banner_bg: @gray-5;
+@o-banner_border: @gray-40;
+
+
+.o-banner {
+  background-color: @o-banner_bg;
+  border-bottom: 1px solid @o-banner_border;
+
+    &-content {
+      padding: unit( @grid_gutter-width / @base-font-size-px, em ) 
+          unit( (@grid_gutter-width / 2) / @base-font-size-px, em );
+
+      .respond-to-min(@bp-med-min, {
+        padding: unit( @grid_gutter-width / @base-font-size-px, em ) 0;
+
+        .grid_column(8);
+      });
+    }
+}

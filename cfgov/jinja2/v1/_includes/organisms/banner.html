@@ -1,0 +1,25 @@
+
+{# ==========================================================================
+
+   Banner
+
+   ==========================================================================
+
+   Description:
+
+   Create an banner when given:
+
+    value:         An object used to customize the markup.
+
+   	value.text:    The text used within the description markup.
+
+   ========================================================================== #}
+{% if value.text %}
+	<div class="o-banner">
+		<div class="wrapper">
+	    	<div class="o-banner-content">
+	       		{{ parse_links(value.text) | safe }}
+	       	</div>
+	    </div>
+	</div>
+{% endif %}
