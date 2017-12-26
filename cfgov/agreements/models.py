@@ -1,33 +1,12 @@
 from __future__ import unicode_literals
-import datetime
-from dateutil import parser
 
-from core.utils import format_file_size
 from django.db import models
-
-
-def ap_date(date):
-    """Convert a date object or date string into an AP-styled date string."""
-    if date is None:
-        return None
-    if type(date) != datetime.date:
-        try:
-            date = parser.parse(date).date()
-        except ValueError:
-            print("Must provide a datetime object or a valid date string")
-            return
-    if date.month in [3, 4, 5, 6, 7]:
-        return date.strftime("%B {}, %Y").format(date.day)
-    elif date.month == 9:
-        return date.strftime("Sept. {}, %Y").format(date.day)
-    else:
-        return date.strftime("%b. {}, %Y").format(date.day)
 
 
 class CreditBase(models.Model):
     """An abstract base class for all credit-card and prepay models."""
-    name = models.TextField(max_length=500, blank=True)
-    slug = models.SlugField(max_length=100, db_index=True)
+    name = models.TextField(max_length=500)
+    slug = models.SlugField(max_length=100)
 
     def __str__(self):
         return self.name
@@ -41,20 +20,8 @@ class Issuer(CreditBase):
     med_id = models.IntegerField(blank=True, null=True)
 
     @property
-    def plan_ids(self):
-        return [plan.pk for plan in self.creditplan_set.all()]
-
-    @property
     def payload(self):
-        return {
-            'name': self.name,
-            'slug': self.slug,
-            'pk': self.pk,
-            'plan_ids': self.plan_ids,
-            'credit_agreements': [a.uri for a
-                                  in self.agreement_set.all()],
-            'prepay_agreements': [a.uri for a
-                                  in self.prepayagreement_set.all()]}
+        return {'name': self.name, 'slug': self.slug, 'pk': self.pk}
 
 
 class CreditPlan(CreditBase):
@@ -64,22 +31,11 @@ class CreditPlan(CreditBase):
 
     @property
     def payload(self):
-        if self.withdrawn:
-            self.withdrawn = self.withdrawn.strftime("%m/%d/%Y")
-
         return {'name': self.name,
                 'pk': self.pk,
-                'slug': self.slug,
-                'issuer': self.issuer.name,
-                'offered': ap_date(self.offered),
-                'withdrawn': ap_date(self.withdrawn),
-                'agreements': [
-                    {'posted': ap_date(a.posted),
-                     'id': a.pk,
-                     'size': format_file_size(a.size),
-                     'effective_string': a.effective_string,
-                     'uri': a.uri} for a
-                    in self.agreement_set.all()]}
+                'issuer': "{}".format(self.issuer),
+                'offered': '{}'.format(self.offered),
+                'withdrawn': '{}'.format(self.withdrawn)}
 
 
 class PrepayPlan(CreditBase):
@@ -90,23 +46,12 @@ class PrepayPlan(CreditBase):
 
     @property
     def payload(self):
-        if self.withdrawn:
-            self.withdrawn = '{}'.format(self.withdrawn)
         return {'name': self.name,
                 'pk': self.pk,
-                'slug': self.slug,
-                'plan_type': self.plan_type,
-                'issuer': self.issuer.name,
-                'offered': self.offered.strftime("%m/%d/%Y"),
-                'withdrawn': self.withdrawn,
-                'agreements': [
-                    {'posted': "{}".format(a.posted),
-                     'id': a.pk,
-                     'size': format_file_size(a.size),
-                     'effective_string': a.effective_string,
-                     'withdrawn': "{}".format(a.withdrawn),
-                     'uri': a.uri} for a
-                    in self.prepayagreement_set.all()]}
+                'issuer': "{}".format(self.issuer),
+                'offered': '{}'.format(self.offered),
+                'withdrawn': '{}'.format(self.withdrawn),
+                'plan_type': self.plan_type}
 
 
 class AgreementBase(models.Model):
@@ -132,28 +77,13 @@ class AgreementBase(models.Model):
         ordering = ['-posted']
 
     @property
-    def effective_string(self):
-        if not self.withdrawn:
-            return "Effective {}".format(
-                ap_date(self.posted))
-        else:
-            return "Effective {}-{}".format(
-                ap_date(self.posted),
-                ap_date(self.withdrawn))
-
-    @property
     def payload(self):
-        return {'issuer': self.issuer.name,
-                'issuer_slug': self.issuer.slug,
-                'issuer_pk': self.issuer.pk,
-                'name': self.file_name,
-                'size': format_file_size(self.size),
+        return {'issuer': "{}".format(self.issuer),
+                'size': self.size,
                 'uri': self.uri,
-                'offered': '{}'.format(ap_date(self.offered)),
-                'withdrawn': '{}'.format(ap_date(self.withdrawn)),
-                'effective_string': self.effective_string,
-                'posted': '{}'.format(ap_date(self.posted)),
-                }
+                'offered': '{}'.format(self.offered),
+                'withdrawn': '{}'.format(self.withdrawn),
+                'posted': '{}'.format(self.posted)}
 
 
 class Agreement(AgreementBase):
@@ -174,19 +104,12 @@ class Agreement(AgreementBase):
 
 class PrepayAgreement(AgreementBase):
     plan = models.ForeignKey(PrepayPlan, null=True)
-    name = models.CharField(blank=True, max_length=500)
 
     @property
     def payload(self):
         data = super(PrepayAgreement, self).payload
         if self.plan:
-            data.update({
-                'name': self.name,
-                'plan': self.plan.name,
-                'pk': self.pk})
+            data.update({'plan': self.plan.name, 'pk': self.pk})
         else:
-            data.update({
-                'name': self.name,
-                'plan': None,
-                'pk': self.pk})
+            data.update({'plan': None, 'pk': self.pk})
         return data
