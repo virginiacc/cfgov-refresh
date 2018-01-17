@@ -112,6 +112,7 @@ OPTIONAL_APPS = [
         'import': 'teachers_digital_platform',
         'apps': ('teachers_digital_platform', 'mptt', 'haystack')
     },
+    {'import': 'ccadb2_ui', 'apps': ('ccadb2_ui', )},
 ]
 
 POSTGRES_APPS = []
