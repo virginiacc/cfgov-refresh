@@ -304,8 +304,8 @@ SHEER_ELASTICSEARCH_SETTINGS = \
                         "tokenizer": "my_edge_ngram_tokenizer"
                     },
                     "tag_analyzer": {
-                       "tokenizer": "keyword",
-                       "filter": "lowercase"
+                        "tokenizer": "keyword",
+                        "filter": "lowercase"
                     }
                 },
                 "tokenizer": {
@@ -340,7 +340,7 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': 'search.backends.CFGOVElasticsearch2SearchEngine',
         'URL': SHEER_ELASTICSEARCH_SERVER,
         'INDEX_NAME': os.environ.get('HAYSTACK_ELASTICSEARCH_INDEX',
-                                     SHEER_ELASTICSEARCH_INDEX+'_haystack'),
+                                     SHEER_ELASTICSEARCH_INDEX + '_haystack'),
         'INCLUDE_SPELLING': True,
     }
 }
