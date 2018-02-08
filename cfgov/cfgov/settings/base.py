@@ -620,11 +620,7 @@ FLAGS = {
     # Ask CFPB search spelling correction support
     # When enabled, spelling suggestions will appear in Ask CFPB search and
     # will be used when the given search term provides no results.
-<<<<<<< HEAD
     'ASK_SEARCH_TYPOS': [],
-=======
-    'ASK_SEARCH_TYPOS': {},
->>>>>>> add ccadb2_ui to installed apps
 
     # Beta banner, seen on beta.consumerfinance.gov
     # When enabled, a banner appears across the top of the site proclaiming
