@@ -18,6 +18,7 @@ from wagtail.contrib.wagtailroutablepage.models import RoutablePageMixin, route
 from wagtail.wagtailadmin.edit_handlers import (
     FieldPanel, ObjectList, StreamFieldPanel, TabbedInterface
 )
+from wagtail.wagtailcore import blocks
 from wagtail.wagtailcore.fields import RichTextField, StreamField
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailsearch import index
@@ -548,8 +549,13 @@ class AnswerPage(CFGOVPage):
         ('feedback', v1_blocks.Feedback()),
     ], blank=True)
 
+    answer_content = StreamField([
+        ('text', blocks.RichTextBlock()),
+    ], blank=True)
+
     content_panels = CFGOVPage.content_panels + [
         FieldPanel('snippet'),
+        StreamFieldPanel('answer_content'),
         FieldPanel('answer'),
         FieldPanel('question'),
         FieldPanel('redirect_to'),

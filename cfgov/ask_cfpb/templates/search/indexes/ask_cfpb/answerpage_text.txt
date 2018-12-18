@@ -1,4 +1,6 @@
-{{ object.answer|striptags|safe }}
 {{ object.snippet|striptags|safe }}
-{{ object.question }}
+{% for block in object.answer_content %}
+{{ block.value|striptags|safe }}
+{% endfor %}
+
 

@@ -66,8 +66,11 @@
              class="o-expandable
                     o-expandable__read-more">
             <div class="o-expandable_content" id="answer-content">
+
                 <div class="answer-text">
-                    {{ page.answer | richtext | safe }}
+                    {% for block in page.answer_content %}
+                        {{ block.value | richtext | safe }}
+                {% endfor %}
                 </div>
                 {% if audiences %}
                 <div class="u-mt15">
