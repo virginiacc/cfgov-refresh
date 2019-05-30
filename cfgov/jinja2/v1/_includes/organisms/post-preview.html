@@ -46,7 +46,8 @@
    post.preview_link_text:  A string with the description text of an external link.
    post.preview_link_url:   A string with the url of an external link.
 
-   controls:                       An object with specific article information.
+   controls:                       Data object from an instance of the
+                                   FilterableList StreamField block.
    controls.post_date_description: A string of the post publication description.
    controls.categories:            An array with the categories for the post.
 
@@ -55,43 +56,62 @@
 
    post_date_description:   A string of the post publication description.
 
+   show_date: Whether to render a date for this post.
+
+   show_tags: Whether to render the tags for this post.
+
    ========================================================================== #}
 
 {% import 'macros/time.html' as time %}
 
-{% macro render(post, controls, url='', post_date_description='') %}
-    {% cache post.post_preview_cache_key %}
+{% macro render(
+    post,
+    controls,
+    url='',
+    post_date_description='',
+    show_date=true,
+    show_tags=true
+) %}
     {% set date_desc = controls.post_date_description or post_date_description or 'Published' %}
     {% set cat_controls = controls.categories %}
     {% set show_categories = cat_controls.show_preview_categories if cat_controls is defined else true %}
-    {% set page_url = url or get_protected_url(page) %}
-    {% set post_url = get_protected_url(post) %}
     <article class="o-post-preview">
         <div class="m-meta-header">
-            <span class="a-date m-meta-header_right">
-                {{ date_desc }}
-                {% if 'EventPage' in post.specific_class.__name__ %}
-                    {{ time.render(post.specific.start_dt, {'date':true}) }}
-                {% else %}
-                    {{ time.render(post.date_published, {'date':true}) }}
-                {% endif %}
-            </span>
-            {# Newsroom Blog category logic #}
-            {% if show_categories %}
+            {% if show_categories and post.categories.exists()  %}
+            <div class="m-meta-header_left">
+                {# If rendering a blog post in the newsroom, use the 'Blog' aggregate category instead of the post's true category. #}
                 {% import 'macros/category-slug.html' as category_slug %}
                 {% if cat_controls and 'newsroom' in cat_controls.page_type and is_blog(post) %}
-                    {{ category_slug.render('blog', page_url, '', false) }}
+                    {{ category_slug.render(category='blog', href=url) }}
                 {% else %}
                     {% for cat in post.categories.all() %}
                         {% if loop.index > 1 %}
-                            |
+                            <span class="m-meta-header_separator">|</span>
                         {% endif %}
-                        {{ category_slug.render(cat.name, page_url, '', false) }}
+                        <span class="m-meta-header_category">{{ category_slug.render(category=cat.name, href=url) }}</span>
                     {% endfor %}
                 {% endif %}
+                {% if show_date %}
+                <span class="m-meta-header_separator">|</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if show_date %}
+            <div class="m-meta-header_right">
+                <span class="a-date">
+                    {{ date_desc }}
+                    {% if 'EventPage' in post.specific_class.__name__ %}
+                        {{ time.render(post.specific.start_dt, {'date':true}) }}
+                    {% else %}
+                        {{ time.render(post.date_published, {'date':true}) }}
+                    {% endif %}
+                </span>
+            </div>
             {% endif %}
         </div>
-         {% if 'EventPage' in post.specific_class.__name__ %}
+        {% cache post.post_preview_cache_key, 'post_preview' %}
+        {% set post_url = pageurl(post) %}
+        {% if 'EventPage' in post.specific_class.__name__ %}
             {% set event = post.specific %}
             {% if event.start_dt %}
                 <div class="o-post-preview_image-container">
@@ -103,13 +123,13 @@
                     </time>
                     {% if event.live_stream_link %}
                         <img class="o-post-preview_image"
-                             src="http://placehold.it/160x90"
+                             src="https://placehold.it/160x90"
                              alt="Livestream event">
                     {% else %}
                         {% from 'macros/util/format/url.html' import location_image_url as location_image_url %}
                         <img class="o-post-preview_image"
                              src="{{ event.location_image_url() }}"
-                             alt="Google Maps image of {{ event.venue_name }}">
+                             alt="Map image of {{ event.venue_name }}">
                     {% endif %}
                 </div>
             {% endif %}
@@ -154,30 +174,30 @@
             {% endif %}
             {% if post.preview_description %}
                 <div class="o-post-preview_description">
-                    {{ parse_links(post.preview_description) | safe }}
+                    {{ post.preview_description | safe }}
                 </div>
             {% endif %}
             <div class="o-post-preview_byline-group">
             {% for author in post.get_authors() %}
                 {% if loop.index == 1  %}
-                    By <a href="{{ page_url }}?authors={{ author.slug }}">
+                    By <a href="{{ url }}?authors={{ author.slug }}">
                        {{ author.name }}
                        </a>
                 {% elif loop.last == true %}
-                    and <a href="{{ page_url }}?authors={{ author.slug }}">
+                    and <a href="{{ url }}?authors={{ author.slug }}">
                         {{ author.name }}
                         </a>
                 {% else %}
-                    , <a href="{{ page_url }}?authors={{ author.slug }}">
+                    , <a href="{{ url }}?authors={{ author.slug }}">
                       {{ author.name }}
                       </a>
                 {% endif %}
             {% endfor %}
             </div>
 
-            {% if post.tags.exists() %}
+            {% if show_tags and post.tags.exists() %}
                 {%- import 'tags.html' as tags %}
-                {{ tags.render(post.related_metadata_tags(), page_url, true, false, is_wagtail=True) }}
+                {{ tags.render(post.related_metadata_tags(), hide_heading=true, is_wagtail=True) }}
             {% endif %}
 
             {% if post.secondary_link_url and post.secondary_link_text %}
@@ -186,6 +206,6 @@
                 </a>
             {% endif %}
         </div>
+        {% endcache %}
     </article>
-    {% endcache %}
 {% endmacro %}

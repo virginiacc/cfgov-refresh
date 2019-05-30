@@ -1,20 +1,22 @@
+import json
 import os
 import sys
 from os.path import exists
 
-from .base import *
-from .database_mixin import *
+from django.core.exceptions import ImproperlyConfigured
+
+from cfgov.settings.base import *
 
 
 default_loggers = []
 
-# Is there a syslog device available? 
+# Is there a syslog device available?
 # selects first of these locations that exist, or None
 syslog_device = next((l for l in ['/dev/log', '/var/run/syslog'] if exists(l)), None)
 
 if syslog_device:
     default_loggers.append('syslog')
-                           
+
 # if not running in mod_wsgi, add console logger
 if not (sys.argv and sys.argv[0] == 'mod_wsgi'):
     default_loggers.append('console')
@@ -54,12 +56,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
-        'v1': {
-            'handlers': default_loggers,
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'core.views': {
+        '': {
             'handlers': default_loggers,
             'level': 'INFO',
             'propagate': True,
@@ -87,30 +84,27 @@ EMAIL_HOST = os.getenv('EMAIL_HOST')
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
-CACHES = {
+CACHES.update({
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/tmp/eregs_cache',
-    },
-    'eregs_longterm_cache': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/tmp/eregs_longterm_cache',
-        'TIMEOUT': 60*60*24*15,     # 15 days
-        'OPTIONS': {
-            'MAX_ENTRIES': 10000,
-        },
-    },
-    'api_cache': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'api_cache_memory',
-        'TIMEOUT': 3600,
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000,
-        },
     },
     'post_preview': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'post_preview_cache',
         'TIMEOUT': None,
     }
-}
+})
+
+# ALLOWED_HOSTS should be defined as a JSON list in the ALLOWED_HOSTS
+# environment variable.
+try:
+    ALLOWED_HOSTS = json.loads(os.getenv('ALLOWED_HOSTS'))
+except (TypeError, ValueError):
+    raise ImproperlyConfigured(
+        "Environment variable ALLOWED_HOSTS is either not defined or is "
+        "not valid JSON. Expected a JSON array of allowed hostnames."
+    )
+
+# Used in legacy.views.complaint.ComplaintLandingView
+COMPLAINT_LANDING_STATS_SOURCE = "https://files.consumerfinance.gov/ccdb/narratives.json"

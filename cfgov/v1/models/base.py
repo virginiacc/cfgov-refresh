@@ -1,10 +1,8 @@
 import csv
-from cStringIO import StringIO
-from urllib import urlencode
+from six.moves import cStringIO as StringIO
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Q
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.template.response import TemplateResponse
 from django.utils import timezone, translation
@@ -21,16 +19,18 @@ from wagtail.wagtailcore.models import (
     Orderable, Page, PageManager, PageQuerySet
 )
 from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
+from wagtail.wagtailsearch import index
 
 from modelcluster.fields import ParentalKey
 from modelcluster.tags import ClusterTaggableManager
 from taggit.models import TaggedItemBase
 from wagtailinventory.helpers import get_page_blocks
 
-from v1 import blocks as v1_blocks, get_protected_url
+from v1 import blocks as v1_blocks
 from v1.atomic_elements import molecules, organisms
 from v1.models.snippets import ReusableText
 from v1.util import ref
+from v1.util.util import validate_social_sharing_image
 
 
 class CFGOVAuthoredPages(TaggedItemBase):
@@ -53,6 +53,7 @@ class BaseCFGOVPageManager(PageManager):
     def get_queryset(self):
         return PageQuerySet(self.model).order_by('path')
 
+
 CFGOVPageManager = BaseCFGOVPageManager.from_queryset(PageQuerySet)
 
 
@@ -64,8 +65,6 @@ class CFGOVPage(Page):
                                      related_name='authored_pages')
     tags = ClusterTaggableManager(through=CFGOVTaggedPages, blank=True,
                                   related_name='tagged_pages')
-    shared = models.BooleanField(default=False)
-    has_unshared_changes = models.BooleanField(default=False)
     language = models.CharField(
         choices=ref.supported_languagues, default='en', max_length=2
     )
@@ -77,7 +76,8 @@ class CFGOVPage(Page):
         related_name='+',
         help_text=(
             'Optionally select a custom image to appear when users share this '
-            'page on social media websites. Minimum size: 1200w x 630h.'
+            'page on social media websites. Recommended size: 1200w x 630h. '
+            'Maximum size: 4096w x 4096h.'
         )
     )
 
@@ -85,6 +85,10 @@ class CFGOVPage(Page):
     is_creatable = False
 
     objects = CFGOVPageManager()
+
+    search_fields = Page.search_fields + [
+        index.SearchField('sidefoot'),
+    ]
 
     # These fields show up in either the sidebar or the footer of the page
     # depending on the page type.
@@ -125,6 +129,10 @@ class CFGOVPage(Page):
         ObjectList(settings_panels, heading='Configuration'),
     ])
 
+    def clean(self):
+        super(CFGOVPage, self).clean()
+        validate_social_sharing_image(self.social_sharing_image)
+
     def get_authors(self):
         """ Returns a sorted list of authors. Default is alphabetical """
         return self.alphabetize_authors()
@@ -138,75 +146,6 @@ class CFGOVPage(Page):
         author_names = self.authors.order_by('name')
         # Then sort by last name
         return sorted(author_names, key=lambda x: x.name.split()[-1])
-
-    def generate_view_more_url(self, request):
-        activity_log = CFGOVPage.objects.get(slug='activity-log').specific
-        tags = []
-        tags = urlencode([('topics', tag) for tag in self.tags.slugs()])
-        return (get_protected_url({'request': request}, activity_log)
-                + '?' + tags)
-
-    def related_posts(self, block):
-        from v1.models.learn_page import AbstractFilterPage
-
-        def tag_set(related_page):
-            return set([tag.pk for tag in related_page.tags.all()])
-
-        def match_all_topic_tags(queryset, page_tags):
-            """Return pages that share every one of the current page's tags."""
-            current_tag_set = set([tag.pk for tag in page_tags])
-            return [page for page in queryset
-                    if current_tag_set.issubset(tag_set(page))]
-
-        related_types = []
-        related_items = {}
-        if block.value.get('relate_posts'):
-            related_types.append('blog')
-        if block.value.get('relate_newsroom'):
-            related_types.append('newsroom')
-        if block.value.get('relate_events'):
-            related_types.append('events')
-        if not related_types:
-            return related_items
-
-        tags = self.tags.all()
-        and_filtering = block.value['and_filtering']
-        specific_categories = block.value['specific_categories']
-        limit = int(block.value['limit'])
-        queryset = AbstractFilterPage.objects.live().exclude(
-            id=self.id).order_by('-date_published').distinct()
-
-        for parent in related_types:  # blog, newsroom or events
-            # Include children of this slug that match at least 1 tag
-            children = Page.objects.child_of_q(Page.objects.get(slug=parent))
-            filters = children & Q(('tags__in', tags))
-
-            if parent == 'events':
-                # Include archived events matches
-                archive = Page.objects.get(slug='archive-past-events')
-                children = Page.objects.child_of_q(archive)
-                filters |= children & Q(('tags__in', tags))
-
-            if specific_categories:
-                # Filter by any additional categories specified
-                categories = ref.get_appropriate_categories(
-                    specific_categories=specific_categories,
-                    page_type=parent
-                )
-                if categories:
-                    filters &= Q(('categories__name__in', categories))
-
-            related_queryset = queryset.filter(filters)
-
-            if and_filtering:
-                # By default, we need to match at least one tag
-                # If specified in the admin, change this to match ALL tags
-                related_queryset = match_all_topic_tags(related_queryset, tags)
-
-            related_items[parent.title()] = related_queryset[:limit]
-
-        # Return items in the dictionary that have non-empty querysets
-        return {key: value for key, value in related_items.items() if value}
 
     def related_metadata_tags(self):
         # Set the tags to correct data format
@@ -235,6 +174,28 @@ class CFGOVPage(Page):
         home_page_children = request.site.root_page.get_children()
         for i, ancestor in enumerate(ancestors):
             if ancestor in home_page_children:
+                # Add top level parent page and `/process/` url segments
+                # where necessary to BAH page breadcrumbs.
+                # TODO: Remove this when BAH moves under /consumer-tools
+                # and redirects are added after 2018 homebuying campaign.
+                if ancestor.slug == 'owning-a-home':
+                    breadcrumbs = []
+                    for ancestor in ancestors[i:]:
+                        ancestor_url = ancestor.relative_url(request.site)
+                        if ancestor_url.startswith((
+                                '/owning-a-home/prepare',
+                                '/owning-a-home/explore',
+                                '/owning-a-home/compare',
+                                '/owning-a-home/close',
+                                '/owning-a-home/sources')):
+                            ancestor_url = ancestor_url.replace(
+                                'owning-a-home', 'owning-a-home/process')
+                        breadcrumbs.append({
+                            'title': ancestor.title,
+                            'href': ancestor_url,
+                        })
+                    return breadcrumbs
+                # END TODO
                 return [ancestor for ancestor in ancestors[i + 1:]]
         return []
 
@@ -473,6 +434,8 @@ class Feedback(models.Model):
         for feedback in queryset:
             feedback.submitted_on = "{}".format(feedback.submitted_on.date())
             feedback.comment = feedback.comment.encode('utf-8')
+            if feedback.referrer is not None:
+                feedback.referrer = feedback.referrer.encode('utf-8')
             writer.writerow(
                 ["{}".format(getattr(feedback, heading))
                  for heading in headings]

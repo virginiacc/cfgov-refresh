@@ -7,7 +7,6 @@
 _site/
 _build/
 cfgov/static_built/*
-cfgov-refresh/
 
 # Packages #
 ############
@@ -22,8 +21,16 @@ cfgov-refresh/
 *.tar
 *.zip
 
+# Desired .zip files #
+######################
+
+!cfgov/agreements/tests/empty-folder-agreements.zip
+!cfgov/agreements/tests/UTF_agreements.zip
+
+
 # Logs and databases #
 ######################
+logs/*
 *.sql
 *.sqlite
 *.sqlite3
@@ -35,24 +42,22 @@ cfgov-refresh/
 ._*
 .Spotlight-V100
 .Trashes
-Icon?
+Icon
+
 ehthumbs.db
 Thumbs.db
 
 # Environment vars #
 ####################
 .env
-.vagrant
 
-# npm packages #
-####################
+# Node packages #
+#################
 node_modules/
+cfgov/unprocessed/apps/*/node_modules/
 npm-debug.log
-
-# Bower packages #
-##################
-bower_components/
-src/vendor
+yarn-error.log
+package-lock.json
 
 # Vim swap files #
 ##################
@@ -65,9 +70,12 @@ __pycache__/
 *.eggs/
 *.egg/
 
+# pyenv #
+#########
+.python-version
+
 # Front-End #
 #############
-node_modules/
 bower_components/
 vendor/
 
@@ -77,9 +85,9 @@ vendor/
 
 # Documentation #
 #################
-docs/scripts
-docs/*/slick.html
-docs/*/pdfreactor-fonts.html
+# MkDocs compiles documentation to this directory.
+# This should not be committed because it gets built by Travis.
+site/
 
 # Django #
 ##########
@@ -95,10 +103,6 @@ collectstatic/*
 develop-apps/*
 static.in/*/
 
-# Ansible #
-###########
-ansible/roles/*
-
 # Unit test / coverage reports #
 ################################
 test/unit_test_coverage/
@@ -111,11 +115,12 @@ htmlcov/
 nosetests.xml
 coverage.xml
 .snyk
+protractorFailuresReport/
 
 # IDE Specifc #
 ###############
 *.idea
 
-# Docker local development #
-############################
-.python_env
+# Auto-generated service workers #
+##################################
+cfgov/regulations3k/jinja2/regulations3k/regulations3k-service-worker.js

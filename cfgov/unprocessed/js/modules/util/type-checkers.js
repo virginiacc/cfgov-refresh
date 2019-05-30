@@ -3,9 +3,8 @@
    Various utility functions to check Javascript types and primitives.
    Copied from:
    https://github.com/angular/angular.js/blob/master/src/Angular.js.
-   Copyright (c) 2010-2015 Google, Inc. http://angularjs.org
+   Copyright (c) 2010-2015 Google, Inc. https://angularjs.org
    ========================================================================== */
-
 
 const _toString = Object.prototype.toString;
 
@@ -52,7 +51,7 @@ function isDefined( value ) {
  * @returns {boolean} True if `value` is an `Object` but not `null`.
  */
 function isObject( value ) {
-  // http://jsperf.com/isobject4
+  // https://jsperf.com/isobject4
   return value !== null && typeof value === 'object';
 }
 
@@ -156,16 +155,15 @@ function isEmpty( value ) {
          ( /^\s*$/ ).test( value );
 }
 
-
 // Expose public methods.
-module.exports = {
-  isUndefined: isUndefined,
-  isDefined:   isDefined,
-  isObject:    isObject,
-  isString:    isString,
-  isNumber:    isNumber,
-  isDate:      isDate,
-  isArray:     isArray,
-  isFunction:  isFunction,
-  isEmpty:     isEmpty
+export {
+  isUndefined,
+  isDefined,
+  isObject,
+  isString,
+  isNumber,
+  isDate,
+  isArray,
+  isFunction,
+  isEmpty
 };

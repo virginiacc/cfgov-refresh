@@ -11,21 +11,23 @@ set -e
 
 # Initialize project dependency directories.
 init() {
-  # Set cli_flag variable.
-  source cli-flag.sh 'Front end' $1
+  # Set NODE_ENV variable.
+  # Set default command-line environment flag, if user didn't supply one.
+  NODE_ENV=$1
 
-  if [ -f "package-lock.json" ]; then
-    DEP_CHECKSUM=$(cat package-lock.json package.json | shasum -a 256)
-  else
-    DEP_CHECKSUM=$(cat package.json | shasum -a 256)
+  # Warn if unsupported command-line flag was used.
+  if [ "$NODE_ENV" != "development" ] &&
+     [ "$NODE_ENV" != "production" ]; then
+    supplied_cli_flag=$NODE_ENV
+    NODE_ENV='development'
+    echo "WARNING: '$supplied_cli_flag' flag not found, reverting to $NODE_ENV environment."
   fi
 
-  if [[ "$(node -v)" != 'v8.'* ]]; then
-    printf "\033[1;31mPlease install Node 8.x: 'nvm install 8'\033[0m\n"
-  fi
+  # Notify of environment that user is in.
+  echo "Front-end environment: $NODE_ENV"
 
-  NODE_DIR=node_modules
-  echo "npm components directory: $NODE_DIR"
+  # Set the NODE_ENV for this session.
+  export NODE_ENV=$NODE_ENV
 }
 
 # Clean project dependencies.
@@ -33,77 +35,49 @@ clean() {
   # If the node directory already exists,
   # clear it so we know we're working with a clean
   # slate of the dependencies listed in package.json.
-  if [ -d $NODE_DIR ]; then
-    echo 'Removing project dependency directories…'
-    rm -rf $NODE_DIR
-    echo 'Project dependencies have been removed.'
+  if [ -d node_modules ]; then
+    echo "Removing project dependency directories…"
+    rm -rf node_modules
+    echo "Project dependencies have been removed."
   fi
 }
 
 # Install project dependencies.
 install() {
-  echo 'Installing front-end dependencies…'
+  echo "Installing front-end dependencies…"
 
-  if [ "$cli_flag" = "development" ] ||
-     [ "$cli_flag" = "test" ]; then
+  if [ "$NODE_ENV" = "development" ]; then
 
-    npm install -d --loglevel warn
+    yarn install --ignore-engines
 
     # Protractor = JavaScript acceptance testing framework.
-    echo 'Installing Protractor dependencies locally…'
+    echo "Installing Protractor dependencies locally…"
     # We skip Gecko here (--gecko false) because webdriver pulls its release
     # directly from a GitHub.com URL which enforces rate-limiting. This can
     # cause installation failures when running automated testing. Currently
     # we don't rely on Gecko for testing.
-    ./$NODE_DIR/protractor/bin/webdriver-manager update --gecko false
+    ./node_modules/protractor/bin/webdriver-manager update --gecko false --standalone false
 
   else
-    npm install --production --loglevel warn --no-optional
+    yarn install --production --ignore-optional
   fi
 }
 
-# Add a checksum file
-checksum() {
-  echo -n "$DEP_CHECKSUM" > $NODE_DIR/CHECKSUM
-}
-
-# If the node directory exists, $NODE_DIR/CHECKSUM exists, and
-# the contents DO NOT match the checksum of package.json, clear
-# $NODE_DIR so we know we're working with a clean slate of the
-# dependencies listed in package.json.
-clean_and_install() {
-  if [ ! -f $NODE_DIR/CHECKSUM ] ||
-     [ "$DEP_CHECKSUM" != "$(cat $NODE_DIR/CHECKSUM)" ]; then
-    clean
-    install
-    checksum
-  else
-    echo 'Dependencies are up to date.'
-  fi
-}
 
 # Run tasks to build the project for distribution.
 build() {
-  echo 'Building project…'
-  gulp build
-
-  if [ "$cli_flag" = "production" ]; then
-    echo 'Running additional build steps for on-demand and Nemo assets.'
-    gulp scripts:ondemand
-    gulp styles:ondemand
-    gulp scripts:nemo
-    gulp styles:nemo
-  fi
+  echo "Building project…"
+  yarn run gulp build
 }
 
 # Execute requested (or all) functions.
 if [ "$1" == "init" ]; then
   init ""
-  clean_and_install
+  install
 elif [ "$1" == "build" ]; then
   build
 else
   init "$1"
-  clean_and_install
+  install
   build
 fi

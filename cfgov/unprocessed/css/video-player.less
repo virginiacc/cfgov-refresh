@@ -18,7 +18,7 @@
 @play-btn-size__px: 73px;
 
 // Variable used to set the play button image.
-@play-btn-url: '../img/video-play-btn.png';
+@play-btn-url: '/static/img/video-play-btn.png';
 
 // Variable used to help center the video container.
 @share-width__px: 130px;
@@ -132,7 +132,7 @@
 
     .m-social-media {
 
-        .respond-to-min( @bp-sm-min {
+        .respond-to-min( @bp-sm-min, {
             text-align: right;
         } );
     }
@@ -142,7 +142,7 @@
         margin-bottom: 0;
         .grid_column(6);
 
-        .respond-to-max( @bp-xs-max {
+        .respond-to-max( @bp-xs-max, {
             width: 100%;
         } );
     }
@@ -164,22 +164,8 @@
 }
 
 .video-player .m-social-media {
-    // Adding white background to the share icons
-    // without overlap.
-    .cf-icon {
-        display: inline-block;
-        height: 20px;
-        width: 22px;
-        background: @white;
-
-        &:before {
-            position: relative;
-            top: -3px;
-        }
-    }
-
-    .m-social-media_icon {
-        color: @pacific;
+    .cf-icon-svg {
+        fill: @white;
     }
 
     .m-social-media_icons {
@@ -194,7 +180,7 @@
         margin-top: @gutter-half__em;
     } );
 
-    .respond-to-range( @bp-sm-min, @fcm-bp-max {
+    .respond-to-range( @bp-sm-min, @fcm-bp-max, {
         .grid_column(6);
     } );
 }
@@ -226,4 +212,16 @@
 	.video-player .m-social-media {
 	   text-align: right;
 	}
+} );
+
+
+// Special styles for playing within an FCM
+.respond-to-min( @fcm-bp-min, {
+    .o-featured-content-module_visual.video-playing {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+    }
 } );

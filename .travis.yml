@@ -1,48 +1,69 @@
 language: python
-sudo: false
 dist: trusty
 
 python:
-  - "2.7"
+- 2.7
+- 3.6
 
+git:
+  depth: 10
+
+services:
+  - postgresql
+
+addons:
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
+  chrome: stable
 
 cache:
   pip: true
-  directories:
-    - node_modules
+
+before_install:
+  - sudo rm -f /etc/boto.cfg
 
 install:
-  - ./install_travis.sh
+  - ./travis_install.sh
 
 branches:
   only:
     - master
 
+before_script:
+  - psql -c "ALTER USER travis WITH PASSWORD 'travis';"
+
 script:
-  - ./run_travis.sh
+  - ./travis_run.sh
 
 env:
   global:
-    - TOXENV=py27
     - DJANGO_SETTINGS_MODULE=cfgov.settings.test
     - DJANGO_STAGING_HOSTNAME=content.localhost
     - COVERALLS_PARALLEL=true
+    - PGPORT=5433
+    - TEST_DATABASE_URL=postgres://travis:travis@localhost:5433/travis
+    - TRAVIS_CHECK_MIGRATIONS="./manage.py makemigrations --dry-run --check"
+  matrix:
+    - RUNTEST=backend
+    - RUNTEST=frontend
+
+matrix:
+  exclude:
+    # We only want to run the frontend build once.
+    - python: 2.7
+      env: RUNTEST=frontend
 
 jobs:
   include:
-  - stage: run tests
-    env: RUNTEST=frontend
-  - env: RUNTEST=backend
-  - stage: Update documentation
-    script:
-      - pip install virtualenv virtualenvwrapper
-      - source activate-virtualenv.sh
-      - pip install -r requirements/manual.txt
-      - mkdocs build
-    deploy:
-      provider: pages
-      local_dir: site
-      skip-cleanup: true
-      github_token: $GITHUB_TOKEN
-      on:
-        branch: master
+    # This stage will run after the default testing stage succeeds.
+    - stage: Build docs and push them to GitHub Pages
+      if: type != pull_request
+      env: RUNTEST=docs
+      deploy:
+        provider: pages
+        local_dir: site
+        skip-cleanup: true
+        github_token: $GITHUB_TOKEN

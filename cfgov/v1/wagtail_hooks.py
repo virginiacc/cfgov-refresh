@@ -1,17 +1,28 @@
 import logging
-from urlparse import urlsplit
 
 from django.conf import settings
 from django.conf.urls import url
+from django.contrib import admin
 from django.core.exceptions import PermissionDenied
 from django.core.urlresolvers import reverse
-from django.utils.html import escape, format_html_join
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.utils.html import format_html_join
 
+from wagtail.contrib.modeladmin.options import (
+    ModelAdmin, ModelAdminGroup, modeladmin_register
+)
 from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
-from wagtail.wagtailcore.models import Page
-from wagtail.wagtailcore.rich_text import PageLinkHandler
+from wagtail.wagtailcore.whitelist import attribute_rule
 
+from v1.admin_views import manage_cdn
+from v1.models.menu_item import MenuItem as MegaMenuItem
+from v1.models.portal_topics import PortalCategory, PortalTopic
+from v1.models.resources import Resource
+from v1.models.snippets import (
+    Contact, GlossaryTerm, RelatedResource, ReusableText
+)
 from v1.util import util
 
 
@@ -62,15 +73,16 @@ def editor_js():
 @hooks.register('insert_editor_css')
 def editor_css():
     css_files = [
-        'css/general-enhancements.css',
-        'css/table-block.css',
         'css/bureau-structure.css',
+        'css/deprecated-blocks.css',
+        'css/general-enhancements.css',
         'css/heading-block.css',
         'css/info-unit-group.css',
+        'css/table-block.css',
     ]
     css_includes = format_html_join(
         '\n',
-        '<link rel="stylesheet" href="{0}{1}"><link>',
+        '<link rel="stylesheet" href="{0}{1}">',
         ((settings.STATIC_URL, filename) for filename in css_files)
     )
 
@@ -119,67 +131,6 @@ def register_django_admin_menu_item():
     )
 
 
-class RelativePageLinkHandler(PageLinkHandler):
-    """
-    Rich text link handler that forces all page links to be relative.
-
-    This special page link handler makes it so that any internal Wagtail page
-    links inserted into rich text fields are rendered as relative links.
-
-    Standard Wagtail behavior stores rich text link content in the database in
-    a psuedo-HTML format like this, including only a page's ID:
-
-        <a linktype="page" id="123">foo</a>
-
-    When this content is rendered for preview or viewing, it's replaced with
-    valid HTML including the page's URL. This custom handler ensures that page
-    URLs are always rendered as relative, like this:
-
-        <a href="/path/to/page">foo</a>
-
-    Pages rendered with this handler should never be rendered like this:
-
-        <a href="http://my.domain/path/to/page">foo</a>
-
-    In standard Wagtail behavior, pages will be rendered with an absolute URL
-    if an installation has multiple Wagtail Sites. In our current custom usage
-    we have multiple Wagtail Sites (one for production, one for staging) that
-    share the same root page. So forcing the use of relative URLs would work
-    fine and allow for easier navigation within a single domain.
-
-    This will explicitly break things if users ever wanted to host some
-    additional site that doesn't share the same root page.
-
-    This code is modified from `wagtail.wagtailcore.rich_text.PageLinkHandler`.
-    """
-    @staticmethod
-    def expand_db_attributes(attrs, for_editor):
-        try:
-            page = Page.objects.get(id=attrs['id'])
-
-            if for_editor:
-                editor_attrs = 'data-linktype="page" data-id="%d" ' % page.id
-                parent_page = page.get_parent()
-                if parent_page:
-                    editor_attrs += 'data-parent-id="%d" ' % parent_page.id
-            else:
-                editor_attrs = ''
-
-            page_url = page.specific.url
-
-            if page_url:
-                page_url = urlsplit(page_url).path
-
-            return '<a %shref="%s">' % (editor_attrs, escape(page_url))
-        except Page.DoesNotExist:
-            return "<a>"
-
-
-@hooks.register('register_rich_text_link_handler')
-def register_cfgov_link_handler():
-    return ('page', RelativePageLinkHandler)
-
-
 @hooks.register('register_admin_menu_item')
 def register_frank_menu_item():
     return MenuItem('CDN Tools',
@@ -190,8 +141,7 @@ def register_frank_menu_item():
 
 @hooks.register('register_admin_urls')
 def register_flag_admin_urls():
-    handler = 'v1.admin_views.manage_cdn'
-    return [url(r'^cdn/$', handler, name='manage-cdn'), ]
+    return [url(r'^cdn/$', manage_cdn, name='manage-cdn'), ]
 
 
 @hooks.register('before_serve_page')
@@ -201,3 +151,169 @@ def serve_latest_draft_page(page, request, args, kwargs):
         response = latest_draft.serve(request, *args, **kwargs)
         response['Serving-Wagtail-Draft'] = '1'
         return response
+
+
+@hooks.register('before_serve_shared_page')
+def before_serve_shared_page(page, request, args, kwargs):
+    request.show_draft_megamenu = True
+
+
+class MegaMenuModelAdmin(ModelAdmin):
+    model = MegaMenuItem
+    menu_label = 'Mega Menu'
+    menu_icon = 'cog'
+    list_display = ('link_text', 'order')
+
+
+modeladmin_register(MegaMenuModelAdmin)
+
+
+@receiver(post_save, sender=MegaMenuItem)
+def clear_mega_menu_cache(sender, instance, **kwargs):
+    from django.core.cache import caches
+    caches['default_fragment_cache'].delete('mega_menu')
+
+
+def get_resource_tags():
+    tag_list = []
+
+    for resource in Resource.objects.all():
+        for tag in resource.tags.all():
+            tuple = (tag.slug, tag.name)
+            if tuple not in tag_list:
+                tag_list.append(tuple)
+
+    return sorted(tag_list, key=lambda tup: tup[0])
+
+
+class ResourceTagsFilter(admin.SimpleListFilter):
+    # Human-readable title which will be displayed in the
+    # right admin sidebar just above the filter options.
+    title = 'tags'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'tag'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        return get_resource_tags()
+
+    def queryset(self, request, queryset):
+        """
+        Returns the filtered queryset based on the value
+        provided in the query string and retrievable via
+        `self.value()`.
+        """
+        for tag in get_resource_tags():
+            if self.value() == tag[0]:
+                return queryset.filter(tags__slug__iexact=tag[0])
+
+
+class ResourceModelAdmin(ModelAdmin):
+    model = Resource
+    menu_label = 'Resources'
+    menu_icon = 'snippet'
+    list_display = ('title', 'desc', 'order', 'thumbnail')
+    ordering = ('title',)
+    list_filter = (ResourceTagsFilter,)
+    search_fields = ('title',)
+
+
+class ContactModelAdmin(ModelAdmin):
+    model = Contact
+    menu_icon = 'snippet'
+    list_display = ('heading', 'body')
+    ordering = ('heading',)
+    search_fields = ('heading', 'body', 'contact_info')
+
+
+class PortalTopicModelAdmin(ModelAdmin):
+    model = PortalTopic
+    menu_icon = 'snippet'
+    list_display = ('heading', 'heading_es')
+    ordering = ('heading',)
+    search_fields = ('heading', 'heading_es')
+
+
+class PortalCategoryModelAdmin(ModelAdmin):
+    model = PortalCategory
+    menu_icon = 'snippet'
+    list_display = ('heading', 'heading_es')
+    ordering = ('heading',)
+    search_fields = ('heading', 'heading_es')
+
+
+class ReusableTextModelAdmin(ModelAdmin):
+    model = ReusableText
+    menu_icon = 'snippet'
+    list_display = ('title', 'sidefoot_heading', 'text')
+    ordering = ('title',)
+    search_fields = ('title', 'sidefoot_heading', 'text')
+
+
+class RelatedResourceModelAdmin(ModelAdmin):
+    model = RelatedResource
+    menu_icon = 'snippet'
+    list_display = ('title', 'text')
+    ordering = ('title',)
+    search_fields = ('title', 'text')
+
+
+class GlossaryTermModelAdmin(ModelAdmin):
+    model = GlossaryTerm
+    menu_icon = 'snippet'
+    list_display = ('name_en', 'definition_en', 'portal_topic')
+    ordering = ('name_en',)
+    search_fields = ('name_en', 'definition_en', 'name_es', 'definition_es')
+
+
+class SnippetModelAdminGroup(ModelAdminGroup):
+    menu_label = 'Snippets'
+    menu_icon = 'snippet'
+    menu_order = 400
+    items = (
+        ContactModelAdmin,
+        ResourceModelAdmin,
+        ReusableTextModelAdmin,
+        RelatedResourceModelAdmin,
+        PortalTopicModelAdmin,
+        PortalCategoryModelAdmin,
+        GlossaryTermModelAdmin)
+
+
+modeladmin_register(SnippetModelAdminGroup)
+
+
+# Hide default Snippets menu item
+@hooks.register('construct_main_menu')
+def hide_snippets_menu_item(request, menu_items):
+    menu_items[:] = [item for item in menu_items
+                     if item.url != reverse('wagtailsnippets:index')]
+
+
+# Override list of allowed tags in a RichTextField
+@hooks.register('construct_whitelister_element_rules')
+def whitelister_element_rules():
+    allow_html_class = attribute_rule({
+        'class': True,
+        'itemprop': True,
+        'itemscope': True,
+        'itemtype': True,
+    })
+
+    allowed_tags = ['aside', 'h4', 'h3', 'p', 'span',
+                    'table', 'tr', 'th', 'td', 'tbody', 'thead', 'tfoot',
+                    'col', 'colgroup']
+
+    return {tag: allow_html_class for tag in allowed_tags}
+
+
+@hooks.register('before_serve_shared_page')
+def set_served_by_wagtail_sharing(page, request, args, kwargs):
+    setattr(request, 'served_by_wagtail_sharing', True)

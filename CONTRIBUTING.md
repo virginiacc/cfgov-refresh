@@ -16,15 +16,15 @@ Use the issue tracker to suggest feature requests, report bugs, and ask question
 This is also a great way to connect with the developers of the project as well
 as others who are interested in this solution.
 
-Use the issue tracker to find ways to contribute. Find a bug or a feature, mention in
-the issue that you will take on that effort, then follow the _Changing the codebase_
-guidance below.
+Use the issue tracker to find ways to contribute.
+Find a bug or a feature, mention in the issue that you will take on that effort,
+then follow the _Changing the codebase_ guidance below.
 
 
 ## Changing the codebase
 
-If you are a contributor from outside of CFPB, you should fork this
-repository, make changes in your own fork, and then submit a pull request.
+If you are a contributor from outside of CFPB, you should fork this repository,
+make changes in your own fork, and then submit a pull request.
 
 If you are a contributor within CFPB, you may also fork, or follow our
 [documentation for branching](https://cfpb.github.io/cfgov-refresh/branching-merging/).
@@ -33,8 +33,8 @@ For timely code reviews of pull requests, please tag @cfpb/cfgov-backends and
 @cfpb/cfgov-frontends as appropriate for your changes.
 
 All new code should have associated unit tests and/or functional tests that
-validate implemented features and the presence or lack of defects. The
-overall test coverage of the codebase should not decrease.
+validate implemented features and the presence or lack of defects.
+The overall test coverage of the codebase should not decrease.
 
 Python code is expected to follow
 [PEP8](https://www.python.org/dev/peps/pep-0008/) and
@@ -45,7 +45,8 @@ When in doubt, mimic the styles and patterns in the existing codebase.
 
 ### Browser support
 
-We configure [Autoprefixer](#autoprefixer) and [Babel](#babel) to support the following list of browsers.
+We configure [Autoprefixer](#autoprefixer) and [Babel](#babel) to support the
+following list of browsers.
 
 - Latest 2 releases of all browsers including:
     - Chrome
@@ -62,24 +63,36 @@ We configure [Autoprefixer](#autoprefixer) and [Babel](#babel) to support the fo
     - Chrome for Android
     - Firefox for Android
     - Samsung Internet
-- Internet Explorer 9
 
-http://browserl.ist/?q=last+2+versions%2C+Explorer+%3E%3D+9
+https://browserl.ist/?q=last+2+versions
 
 As well as additional Autoprefixer support for:
 
 - Internet Explorer 8
+- Internet Explorer 9
 
-http://browserl.ist/?q=last+2+versions%2C+Explorer+%3E%3D+8
+https://browserl.ist/?q=last+2+versions%2C+Explorer+%3E%3D+8
 
 What this means to the end-user is we've added a level of backward
-compatability for modern features as much as possible. This doesn't
+compatibility for modern features as much as possible. This doesn't
 necessarily mean feature parity. Where it's impossible or impractical to
 implement a modern feature, we fallback to standard practices for that browser.
-For example, we do not deliver interactive scripting for Internet Explorer 8,
+For example, we do not deliver interactive scripting
+for Internet Explorer 8 and 9,
 but we do ensure that default browser features continue to work so users
 that can't or don't want to upgrade continue to have access to the site and
 our content.
+
+#### Satellite app assets
+
+Satellite apps may run within consumerfinance.gov, but manage their own assets
+within the
+[unprocessed/apps](https://github.com/cfpb/cfgov-refresh/tree/master/cfgov/unprocessed/apps)
+directory. These apps can have their own package.json file, webpack config file,
+and
+[browserlist config](https://github.com/browserslist/browserslist#config-file)
+file. Together of which may create a different level of browser support,
+third-party assets, or configuration for these apps, relative to the main site.
 
 #### Browser Testing
 
@@ -112,14 +125,12 @@ features. For more information visit the [Babel documentation site]
 
 #### Known feature differences
 
-- JavaScript: We do not serve interactive scripting to IE 8 but we do deliver
-  analytics via JavaScript.
-- Icons: We currently use icon fonts to deliver scalable icons. Browsers that
-  do not support icon fonts unfortunately do not receive backups but we try to
-  always pair icons with text.
+- JavaScript:
+  We do not serve interactive scripting to Internet Explorer 8 and 9,
+  but we do collect analytics via JavaScript.
 
 #### Resources
 
 - https://developer.microsoft.com/en-us/microsoft-edge/tools/vms/
 - https://saucelabs.com/beta/dashboard/tests
-- http://developer.samsung.com/remotetestlab/rtlDeviceList.action#
+- https://developer.samsung.com/remotetestlab/rtlDeviceList.action

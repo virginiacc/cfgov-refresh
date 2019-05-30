@@ -2,7 +2,7 @@
    Scripts for Ask Autocomplete.
    ========================================================================== */
 
-const Autocomplete = require( '../../molecules/Autocomplete' );
+import Autocomplete from '../../molecules/Autocomplete';
 
 const URLS = {
   en: '/ask-cfpb/api/autocomplete/?term=',
@@ -32,5 +32,6 @@ if ( autocompleteContainer ) {
       li.appendChild( link );
       return li;
     }
-  } ).init();
+  } );
+  autocomplete.init();
 }

@@ -1,10 +1,11 @@
-{% load static from staticfiles %}
-{% load global_include %}
+{% load base_elements %}
 {% load i18n %}
-{% load staticversions %}
-{% get_static_version as STATIC_VERSION %}
 {% load remit_var %}
+{% load static from staticfiles %}
+{% load staticversions %}
+
 {% is_remit as IS_REMIT %}
+{% get_static_version as STATIC_VERSION %}
 
 <!DOCTYPE html>
 <!--
@@ -14,12 +15,12 @@
     & Innovation team. We're always looking for a few great designers,
     developers, data scientists, and network, infrastructure, privacy and
     security pros. Keep an eye on our job opportunities at:
-    http://www.consumerfinance.gov/jobs/
+    https://www.consumerfinance.gov/jobs/
 
     Also, you can see more of our code at https://github.com/cfpb
 
     And by the way, there’s another hidden message somewhere on the following
-    page: http://www.consumerfinance.gov/jobs/technology-innovation-fellows/.
+    page: https://www.consumerfinance.gov/jobs/technology-innovation-fellows/.
     See if you can find it! Hint: picture yourself embedded in our work.
 
     ============================================================================
@@ -28,7 +29,6 @@
 <!--[if lt IE 7]> <html class="no-js lt-ie10 lt-ie9 lt-ie8 lt-ie7" dir="ltr" lang="{% trans "en-US" %}"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie10 lt-ie9 lt-ie8" dir="ltr" lang="{% trans "en-US" %}"> <![endif]-->
 <!--[if IE 8]>    <html class="no-js lt-ie10 lt-ie9" dir="ltr" lang="{% trans "en-US" %}"> <![endif]-->
-<!-- Consider adding a manifest.appcache: h5bp.com/d/Offline -->
 <!--[if IE 9]>    <html class="no-js lt-ie10" dir="ltr" lang="{% trans "en-US" %}"> <![endif]-->
 <!--[if gt IE 9]><!--> <html dir="ltr" lang="{% trans "en-US" %}" class="no-js"> <!--<![endif]-->
 
@@ -49,10 +49,10 @@
     ==================
 -->
 
-    <title>{% block title %}{% endblock %} > {% trans "Consumer Financial Protection Bureau" %}</title>
+    <title>{% block title %}{% endblock %} | {% trans "Consumer Financial Protection Bureau" %}</title>
 
     <!-- Meta -->
-    <meta name="google-site-verification" content=""> <!-- http://google.com/webmasters -->
+    <meta name="google-site-verification" content=""> <!-- https://google.com/webmasters -->
     <meta name="Copyright" content="Public domain">
 
     <meta property="og:type" content="government">
@@ -137,6 +137,10 @@
     the head, then file an issue or PR to discuss including it.
 -->
 
+    {# Google Optimize page-hiding snippet #}
+    <style> .optimize-loading { opacity: 0 !important; } </style>
+    <script> (function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date; h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')}; (a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c; })(window,document.documentElement,'optimize-loading','dataLayer',1000, {'GTM-KHB8MB':true}); </script>
+    {# end Google Optimize page-hiding snippet #}
     {# Google Tag Manager #}
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -144,25 +148,16 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-KMMLRS');</script>
 
-    <script src="{% static 'js/modernizr.min.js' %}"></script>
     <!--[if lt IE 9]>
     <script src="{% static 'nemo/_/js/html5shim.js' %}"></script>
     <![endif]-->
-
-    <!--[if lt IE 9]>
-    <script>
-        // If in IE8 reverse no-js/js class change made by modernizr.
-        var docElement = document.documentElement;
-        docElement.className = docElement.className.replace( /(^|\s)js(\s|$)/, '$1no-js$2' );
-    </script>
-    <![endif]-->
-
-    <!--[if IE 9]><script src="{% static 'js/ie/common.ie9.js' %}"></script><![endif]-->
 
     <script src="{% static 'nemo/_/js/jquery-1.9.1.min.js' %}"></script>
 
     {% block analytics_js %}
     {% endblock %}
+
+    {% include_modernizr %}
 </head>
 
 <body class="{% block body_class %}page{% endblock %}" data-lang="{% trans "en" %}">
@@ -173,7 +168,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 {% endblock %}
 
-    {% global_include "on-demand/header.html" %}
+    {% include_header %}
     <div id="page">
         {% block app_notification %}
         {% endblock %}
@@ -193,7 +188,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 
     </div><!-- /#page -->
-    {% global_include "on-demand/footer.html" %}
+    {% include_footer %}
 
     {% block app_modal %}
     {% endblock %}

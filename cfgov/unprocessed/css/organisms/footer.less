@@ -126,10 +126,6 @@
             // of the footer and the links. The button comes between
             // that margin in the wireframes.
             margin: -2em auto 2em;
-
-            .cf-icon-arrow-up {
-                padding-left: 1em;
-            }
         }
 
         .o-footer_nav-list {
@@ -162,6 +158,17 @@
             margin: 0;
         }
 
+        /* Fix doubled border in mobile view */
+        .respond-to-max( @bp-xs-max, {
+            .o-footer_col:nth-child( n+2 ) {
+                .o-footer_list {
+                    .m-list_item .m-list_link {
+                        border-top-width: 0;
+                    }
+                }
+            }
+        } );
+
         .respond-to-min( @bp-sm-min, {
             .grid_column(8);
             border-right: 1px solid @gray-40;
@@ -178,6 +185,15 @@
     }
 
     &-middle-right {
+        /* Fix doubled border in mobile view */
+        .respond-to-max( @bp-xs-max, {
+            .o-footer_list {
+                .m-list_item .m-list_link {
+                    border-top-width: 0;
+                }
+            }
+        } );
+
         .respond-to-min( @bp-sm-min, {
             .grid_column(4);
 
@@ -195,23 +211,6 @@
             padding-top: unit( @grid_gutter-width / @base-font-size-px, em );
             border-top: 1px solid @gray-40;
         } );
-
-        .o-footer_official-website {
-            .u-webfont-regular();
-            padding-left: 37px; //22px flag + 15px spacing
-            background: url( '/static/img/us-flag_22x13.png' ) no-repeat 0 4px;
-
-            // This media query is to keep 'United States Government'
-            // on one line.
-            .respond-to-max( 479px, {
-                max-width: 220px;
-            } );
-
-            .respond-to-dpi( 2, {
-                background-image: url( '/static/img/us-flag_44x26.png' );
-                background-size: 22px;
-            } );
-        }
     }
 
     // Hide return to top button on print.

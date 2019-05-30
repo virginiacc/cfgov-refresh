@@ -1,9 +1,13 @@
+from django.core.exceptions import ValidationError
+from django.forms.utils import ErrorList
+from django.utils.safestring import mark_safe
+
 from wagtail.wagtailcore import blocks
 from wagtail.wagtailimages.blocks import ImageChooserBlock
 
 from v1.atomic_elements import atoms
 from v1.blocks import AnchorLink, HeadingBlock
-from v1.util import ref
+from v1.feeds import get_appropriate_rss_feed_url_for_page
 
 
 class HalfWidthLinkBlob(blocks.StructBlock):
@@ -71,6 +75,12 @@ class ImageText2575(blocks.StructBlock):
 
 
 class TextIntroduction(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(
+        required=False,
+        help_text=('Optional: Adds an H5 eyebrow above H1 heading text. '
+                   'Only use in conjunction with heading.'),
+        label='Pre-heading'
+    )
     heading = blocks.CharBlock(required=False)
     intro = blocks.RichTextBlock(required=False)
     body = blocks.RichTextBlock(required=False)
@@ -81,6 +91,21 @@ class TextIntroduction(blocks.StructBlock):
         help_text=('Check this to add a horizontal rule line to bottom of '
                    'text introduction.')
     )
+
+    def clean(self, value):
+        cleaned = super(TextIntroduction, self).clean(value)
+
+        # Eyebrow requires a heading.
+        if cleaned.get('eyebrow') and not cleaned.get('heading'):
+            raise ValidationError(
+                'Validation error in TextIntroduction: '
+                'pre-heading requires heading',
+                params={'heading': ErrorList([
+                    'Required if a pre-heading is entered.'
+                ])}
+            )
+
+        return cleaned
 
     class Meta:
         icon = 'title'
@@ -97,28 +122,6 @@ class Hero(blocks.StructBlock):
         required=False,
         help_text='Maximum character count: 185 (including spaces)'
     )
-
-    links = blocks.ListBlock(
-        atoms.Hyperlink(),
-        help_text='If your hero needs a call-to-action link, '
-                  'enter it here, rather than inside the body field.'
-    )
-    is_button = blocks.BooleanBlock(
-        required=False,
-        help_text='Select to render any links given above as buttons.'
-    )
-
-    image = ImageChooserBlock(
-        required=False,
-        help_text='Should be exactly 390px tall, and up to 940px wide, '
-                  'unless this is an overlay or bleeding style hero.'
-    )
-    is_overlay = blocks.BooleanBlock(
-        required=False,
-        help_text='Select if you want the provided image to be '
-                  'a background image under the entire hero.'
-    )
-
     background_color = blocks.CharBlock(
         required=False,
         help_text='Specify a hex value (with the # sign) '
@@ -131,17 +134,16 @@ class Hero(blocks.StructBlock):
         help_text='Turns the hero text white. Useful if using '
                   'a dark background color or background image.'
     )
-    cta_link_color = blocks.CharBlock(
+    image = ImageChooserBlock(
         required=False,
-        label='CTA link color',
-        help_text='If using a dark background color or background image, '
-                  'you may need to specify an alternate color '
-                  'for the call-to-action link. Specify a hex value '
-                  '(with the # sign) from our official palette: '
-                  'https://github.com/cfpb/cf-theme-cfpb/blob/'
-                  'master/src/color-palette.less'
+        help_text='Should be exactly 390px tall, and up to 940px wide, '
+                  'unless this is an overlay or bleeding style hero.'
     )
-
+    is_overlay = blocks.BooleanBlock(
+        required=False,
+        help_text='Select if you want the provided image to be '
+                  'a background image under the entire hero.'
+    )
     is_bleeding = blocks.BooleanBlock(
         required=False,
         help_text='Select if you want the provided image to bleed '
@@ -159,67 +161,24 @@ class Hero(blocks.StructBlock):
         classname = 'block__flush-top block__flush-bottom'
 
 
-class FormFieldWithButton(blocks.StructBlock):
-    btn_text = blocks.CharBlock(required=False)
-
-    required = blocks.BooleanBlock(required=False)
-
-    info = blocks.RichTextBlock(required=False, label="Disclaimer")
-    label = blocks.CharBlock(required=True)
-    type = blocks.ChoiceBlock(choices=[
-        ('text', 'Text'),
-        ('checkbox', 'Checkbox'),
-        ('email', 'Email'),
-        ('number', 'Number'),
-        ('url', 'URL'),
-        ('radio', 'Radio'),
-    ], required=False)
-    placeholder = blocks.CharBlock(required=False)
+class Notification(blocks.StructBlock):
+    message = blocks.CharBlock(
+        required=True,
+        help_text='The main notification message to display.'
+    )
+    explanation = blocks.TextBlock(
+        required=False,
+        help_text='Explanation text appears below the message in smaller type.'
+    )
+    links = blocks.ListBlock(
+        atoms.Hyperlink(required=False),
+        required=False,
+        help_text='Links appear on their own lines below the explanation.'
+    )
 
     class Meta:
-        icon = 'mail'
-        template = '_includes/molecules/form-field-with-button.html'
-
-
-class FeaturedContent(blocks.StructBlock):
-    heading = blocks.CharBlock(required=False)
-    body = blocks.RichTextBlock(required=False)
-
-    category = blocks.ChoiceBlock(choices=ref.fcm_types, required=False)
-    post = blocks.PageChooserBlock(required=False)
-
-    show_post_link = blocks.BooleanBlock(required=False,
-                                         label="Render post link?")
-    post_link_text = blocks.CharBlock(required=False)
-
-    image = atoms.ImageBasic(required=False)
-    links = blocks.ListBlock(atoms.Hyperlink(required=False),
-                             label='Additional Links')
-
-    video = blocks.StructBlock([
-        ('id', blocks.CharBlock(
-            required=False,
-            label='ID',
-            help_text='E.g., in "https://www.youtube.com/watch?v=en0Iq8II4fA",'
-                      ' the ID is everything after the "?v=".')),
-        ('url', blocks.CharBlock(
-            required=False,
-            label='URL',
-            help_text='You must use the embed URL, e.g., '
-                      'https://www.youtube.com/embed/'
-                      'JPTg8ZB3j5c?autoplay=1&enablejsapi=1')),
-        ('height', blocks.CharBlock(default='320', required=False)),
-        ('width', blocks.CharBlock(default='568', required=False)),
-    ])
-
-    class Meta:
-        template = '_includes/molecules/featured-content.html'
-        icon = 'doc-full-inverse'
-        label = 'Featured Content'
-        classname = 'block__flush'
-
-    class Media:
-        js = ['video-player.js']
+        icon = 'warning'
+        template = '_includes/molecules/notification.html'
 
 
 class CallToAction(blocks.StructBlock):
@@ -286,27 +245,32 @@ class ContactPhone(blocks.StructBlock):
         label = 'Phone'
 
 
-class ImageInset(blocks.StructBlock):
+class ContentImage(blocks.StructBlock):
     image = atoms.ImageBasic()
-    image_position = blocks.ChoiceBlock(choices=[('right', 'right'),
-                                                 ('left', 'left')],
-                                        default='right')
-    is_image_decorative = blocks.BooleanBlock(required=False,
-                                              label='Image decorative')
-    image_width = blocks.ChoiceBlock(choices=[(170, '170px'),
-                                              (270, '270px')],
-                                     default=270,
-                                     label='Image Width',
-                                     help_text='Default is 270px.')
-    text = blocks.RichTextBlock(required=False)
-    is_bottom_rule = blocks.BooleanBlock(required=False,
-                                         default=True,
-                                         label='Bottom Rule')
+    image_width = blocks.ChoiceBlock(
+        choices=[('full', 'full'),
+                 (470, '470px'),
+                 (270, '270px'),
+                 (170, '170px')],
+        default='full',)
+    image_position = blocks.ChoiceBlock(
+        choices=[('right', 'right'),
+                 ('left', 'left')],
+        default='right',
+        help_text='Does not apply if the image is full-width',
+    )
+    text = blocks.RichTextBlock(required=False, label='Caption')
+    is_bottom_rule = blocks.BooleanBlock(
+        required=False,
+        default=True,
+        label='Has bottom rule line',
+        help_text='Check to add a horizontal rule line to bottom of inset.'
+    )
 
     class Meta:
         icon = 'image'
-        template = '_includes/molecules/image-inset.html'
-        label = 'Image inset'
+        template = '_includes/molecules/content-image.html'
+        label = 'Image'
 
 
 class RelatedLinks(blocks.StructBlock):
@@ -358,16 +322,30 @@ class RelatedMetadata(blocks.StructBlock):
         label = 'Related metadata'
 
 
-class RSSFeed(blocks.ChoiceBlock):
-    choices = [
-        ('blog_feed', 'Blog Feed'),
-        ('newsroom_feed', 'Newsroom Feed'),
-    ]
-
+class RSSFeed(blocks.StaticBlock):
     class Meta:
         icon = 'plus'
         template = '_includes/molecules/rss-feed.html'
         label = 'RSS feed'
+        admin_text = mark_safe(
+            '<h3>RSS Feed</h3>'
+            'If this page or one of its ancestors provides an RSS feed, '
+            'this block renders a link to that feed. If not, this block '
+            'renders nothing.'
+        )
+
+    def get_context(self, value, parent_context=None):
+        context = super(RSSFeed, self).get_context(
+            value,
+            parent_context=parent_context
+        )
+
+        page = context.get('page')
+
+        if page:
+            context['value'] = get_appropriate_rss_feed_url_for_page(page)
+
+        return context
 
 
 class SocialMedia(blocks.StructBlock):

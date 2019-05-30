@@ -2,7 +2,6 @@ const gulp = require( 'gulp' );
 const gulpChanged = require( 'gulp-changed' );
 const configCopy = require( '../config' ).copy;
 const handleErrors = require( '../utils/handle-errors' );
-const browserSync = require( 'browser-sync' );
 const del = require( 'del' );
 
 /**
@@ -15,44 +14,35 @@ function _genericCopy( src, dest ) {
   return gulp.src( src )
     .pipe( gulpChanged( dest ) )
     .on( 'error', handleErrors )
-    .pipe( gulp.dest( dest ) )
-    .pipe( browserSync.reload( {
-      stream: true
-    } ) );
+    .pipe( gulp.dest( dest ) );
 }
 
-gulp.task( 'copy:icons', () => {
+gulp.task( 'copy:icons:main', () => {
   const icons = configCopy.icons;
   return _genericCopy( icons.src, icons.dest );
 } );
 
-gulp.task( 'copy:codeJson', () => {
-  const codeJson = configCopy.codejson;
-  return _genericCopy( codeJson.src, codeJson.dest );
+gulp.task( 'copy:icons:oah', () => {
+  const icons = configCopy.icons;
+  const iconsOAH = configCopy.iconsOAH;
+  return _genericCopy( icons.src, iconsOAH.dest );
 } );
 
-gulp.task( 'copy:vendorfonts', () => {
-  const vendorFonts = configCopy.vendorFonts;
-  return _genericCopy( vendorFonts.src, vendorFonts.dest );
+gulp.task( 'copy:icons:r3k', () => {
+  const icons = configCopy.icons;
+  const iconsR3K = configCopy.iconsR3K;
+  return _genericCopy( icons.src, iconsR3K.dest );
 } );
 
-gulp.task( 'copy:vendorcss', () => {
-  const vendorCss = configCopy.vendorCss;
-  return gulp.src( vendorCss.src )
-    .pipe( gulpChanged( vendorCss.dest ) )
-    .on( 'error', handleErrors )
-    .pipe( gulp.dest( vendorCss.dest ) )
-    .pipe( browserSync.reload( {
-      stream: true
-    } ) );
+// TODO: Remove when icon font is entirely deprecated.
+gulp.task( 'copy:icons:old', () => {
+  const icons = configCopy.iconsOld;
+  return _genericCopy( icons.src, icons.dest );
 } );
 
-gulp.task( 'copy:timelinejs', () => {
-  const timelinejs = configCopy.timelinejs;
-  return _genericCopy( timelinejs.src, timelinejs.dest )
-    .on( 'end', () => {
-      del( timelinejs.dest + '/css/themes' );
-    } );
+gulp.task( 'copy:json:code', () => {
+  const jsonCode = configCopy.jsonCode;
+  return _genericCopy( jsonCode.src, jsonCode.dest );
 } );
 
 gulp.task( 'copy:lightbox2', () => {
@@ -60,19 +50,21 @@ gulp.task( 'copy:lightbox2', () => {
   return _genericCopy( lightbox2.src, lightbox2.dest );
 } );
 
-gulp.task( 'copy:vendorjs', () => {
-  const vendorJs = configCopy.vendorJs;
-  return _genericCopy( vendorJs.src, vendorJs.dest );
-} );
+
+gulp.task( 'copy:icons',
+  gulp.parallel(
+    'copy:icons:main',
+    'copy:icons:oah',
+    'copy:icons:r3k'
+  )
+);
 
 gulp.task( 'copy',
-  [
+  gulp.parallel(
     'copy:icons',
-    'copy:codeJson',
-    'copy:vendorfonts',
-    'copy:vendorcss',
-    'copy:vendorjs',
-    'copy:timelinejs',
+    // TODO: Remove when icon font is entirely deprecated.
+    'copy:icons:old',
+    'copy:json:code',
     'copy:lightbox2'
-  ]
+  )
 );

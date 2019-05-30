@@ -13,8 +13,8 @@
 {%- endblock %}
 
 {% block og_image %}
-        <meta property="og:image" content="https://s3.amazonaws.com/files.consumerfinance.gov/f/images/cfpb_fwb_tool-graphic_1200.original.png">
-        <meta property="twitter:image" content="https://s3.amazonaws.com/files.consumerfinance.gov/f/images/cfpb_fwb_tool-graphic_1200.original.png">
+        <meta property="og:image" content="https://files.consumerfinance.gov/f/images/cfpb_fwb_tool-graphic_1200.original.png">
+        <meta property="twitter:image" content="https://files.consumerfinance.gov/f/images/cfpb_fwb_tool-graphic_1200.original.png">
         <meta name="twitter:card" content="summary_large_image">
 {% endblock %}
 
@@ -113,6 +113,9 @@
             <h2 class="a-heading">For further reading and research</h2>
         </header>
         <p>
+            <a href="/practitioner-resources/financial-well-being-resources/">See how to use financial well-being with the people you serve.</a>
+        </p>
+        <p>
             <a href="/data-research/research-reports/financial-well-being/">Learn more about financial well-being</a>
             and how we came to understand its meaning.
         </p>
@@ -145,11 +148,10 @@
             Please refer to our
             <a class="a-link
                       a-link__icon
-                      cf-icon
-                      cf-icon-external-link
-                      cf-icon__after"
+                      a-link__icon-after-text"
                href="https://cfpb.github.io/design-manual/brand-guidelines/brand-guidelines.html">
                 <span class="a-link_text">name and logo guidelines</span>
+                {{ svg_icon('external-link') }}
             </a>.
         </p>
         <a class="a-link__jump"

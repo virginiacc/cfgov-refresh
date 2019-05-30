@@ -4,7 +4,8 @@ const paths = environment.paths;
 const globAll = require( 'glob-all' );
 
 module.exports = {
-  pkg:    JSON.parse( fs.readFileSync( 'package.json' ) ), // eslint-disable-line no-sync, no-inline-comments, max-len
+  // eslint-disable-next-line no-sync
+  pkg:    JSON.parse( fs.readFileSync( 'package.json' ) ),
   banner:
       '/*!\n' +
       ' *               ad$$               $$\n' +
@@ -24,26 +25,23 @@ module.exports = {
       ' *  A public domain work of the Consumer Financial Protection Bureau\n' +
       ' */\n',
   lint: {
-    src: [ paths.unprocessed + '/js/**/*.js' ],
+    src: [
+      `${ paths.unprocessed }/js/**/*.js`,
+      `${ paths.unprocessed }/apps/**/js/**/*.js`,
+      `!${ paths.unprocessed }/apps/**/node_modules/**`
+    ],
     test:  [
+      paths.test + '/util/**/*.js',
       paths.test + '/unit_tests/**/*.js',
       paths.test + '/browser_tests/**/*.js'
     ],
     build: [
       'config/**/*.js',
       'gulpfile.js',
-      'gulp/**/*.js'
+      'gulp/**/*.js',
+      'scripts/npm/**/*.js',
+      'jest.config.js'
     ]
-  },
-  test: {
-    src:   paths.unprocessed + '/js/**/*.js',
-    tests: paths.test,
-    reporter: environment.CONTINUOUS_INTEGRATION
-  },
-  clean: {
-    css: paths.processed + '/css',
-    js: paths.processed + '/js',
-    dest: paths.processed
   },
   scripts: {
     src: paths.unprocessed + '/js/**/*.js',
@@ -72,10 +70,6 @@ module.exports = {
       './config/**/*.js',
       './gulp/**/*.js'
     ],
-    otherBuildTriggerFilesKBSpanish: [
-      paths.legacy + '/knowledgebase/**/*.css',
-      paths.legacy + '/knowledgebase/**/*.less'
-    ],
     otherBuildTriggerFilesNemo: [
       paths.legacy + '/nemo/**/*.css',
       paths.legacy + '/nemo/**/*.less'
@@ -94,47 +88,31 @@ module.exports = {
       paths.legacy + '/nemo/_/js/AnalyticsTarget.js'
     ]
   },
-  images: {
-    src:  [ paths.unprocessed + '/img/**', './cfgov/wellbeing/static/img/**' ],
-    dest: paths.processed + '/img'
-  },
   copy: {
-    codejson: {
+    jsonCode: {
       src:  'code.json',
       dest: paths.processed
     },
     icons: {
+      src:  paths.modules + '/cf-icons/src/icons/*.svg',
+      dest: paths.processed + '/icons/'
+    },
+    iconsOAH: {
+      dest: paths.processed + '/apps/owning-a-home/icons/'
+    },
+    iconsR3K: {
+      dest: paths.processed + '/apps/regulations3k/icons/'
+    },
+    // TODO: Remove when icon font is entirely deprecated.
+    iconsOld: {
       src:  paths.modules + '/cf-icons/src/fonts/*',
       dest: paths.processed + '/fonts/'
-    },
-    vendorFonts: {
-      src:  paths.unprocessed + '/fonts/pdfreactor/*',
-      dest: paths.processed + '/fonts/pdfreactor'
-    },
-    vendorCss: {
-      src: [
-        paths.unprocessed + '/css/pdfreactor-fonts.css'
-      ],
-      dest: paths.processed + '/css'
-    },
-    timelinejs: {
-      src: [
-        paths.modules + '/timelinejs/build/**/*'
-      ],
-      dest: paths.processed + '/timelinejs'
     },
     lightbox2: {
       src: [
         paths.modules + '/lightbox2/dist/**/*'
       ],
       dest: paths.processed + '/lightbox2'
-    },
-    vendorJs: {
-      src: [
-        paths.modules + '/ustream-embedapi/dist/ustream-embedapi.min.js',
-        paths.unprocessed + '/js/apps/know-before-you-owe/kbyo-timeline.json'
-      ],
-      dest: paths.processed + '/js/'
     }
   }
 };

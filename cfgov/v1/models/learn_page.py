@@ -1,6 +1,6 @@
 from datetime import date
-from urllib import urlencode
 
+from django.conf import settings
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -13,12 +13,14 @@ from wagtail.wagtailcore.fields import RichTextField, StreamField
 from wagtail.wagtailcore.models import Page, PageManager
 from wagtail.wagtaildocs.edit_handlers import DocumentChooserPanel
 from wagtail.wagtailimages.edit_handlers import ImageChooserPanel
+from wagtail.wagtailsearch import index
 
 from localflavor.us.models import USStateField
 
 from v1 import blocks as v1_blocks
 from v1.atomic_elements import molecules, organisms
 from v1.models.base import CFGOVPage, CFGOVPageManager
+from v1.util.events import get_venue_coords
 
 
 class AbstractFilterPage(CFGOVPage):
@@ -66,12 +68,17 @@ class AbstractFilterPage(CFGOVPage):
             FieldPanel('comments_close_by'),
         ], 'Relevant Dates', classname='collapsible'),
         MultiFieldPanel(Page.settings_panels, 'Scheduled Publishing'),
+        FieldPanel('language', 'Language'),
     ]
 
     # This page class cannot be created.
     is_creatable = False
 
     objects = CFGOVPageManager()
+
+    search_fields = CFGOVPage.search_fields + [
+        index.SearchField('header')
+    ]
 
     @classmethod
     def generate_edit_handler(self, content_panel):
@@ -95,19 +102,18 @@ class AbstractFilterPage(CFGOVPage):
 
 class LearnPage(AbstractFilterPage):
     content = StreamField([
-        ('info_unit_group_25_75_only', organisms.InfoUnitGroup2575Only()),
-        ('image_text_25_75_group', organisms.ImageText2575Group()),
-        ('well', organisms.Well()),
         ('full_width_text', organisms.FullWidthText()),
-        ('expandable', organisms.Expandable()),
+        ('info_unit_group_25_75_only', organisms.InfoUnitGroup2575Only()),
         ('expandable_group', organisms.ExpandableGroup()),
-        ('table', organisms.Table(editable=False)),
-        ('table_block', organisms.AtomicTableBlock(
-            table_options={'renderer': 'html'})),
+        ('expandable', organisms.Expandable()),
+        ('well', organisms.Well()),
         ('call_to_action', molecules.CallToAction()),
-        ('feedback', v1_blocks.Feedback()),
-        ('video_player', organisms.VideoPlayer()),
         ('email_signup', organisms.EmailSignUp()),
+        ('video_player', organisms.VideoPlayer()),
+        ('table_block', organisms.AtomicTableBlock(
+            table_options={'renderer': 'html'}
+        )),
+        ('feedback', v1_blocks.Feedback()),
     ], blank=True)
     edit_handler = AbstractFilterPage.generate_edit_handler(
         content_panel=StreamFieldPanel('content')
@@ -116,13 +122,16 @@ class LearnPage(AbstractFilterPage):
 
     objects = PageManager()
 
+    search_fields = AbstractFilterPage.search_fields + [
+        index.SearchField('content')
+    ]
+
 
 class DocumentDetailPage(AbstractFilterPage):
     content = StreamField([
         ('full_width_text', organisms.FullWidthText()),
         ('expandable', organisms.Expandable()),
         ('expandable_group', organisms.ExpandableGroup()),
-        ('table', organisms.Table(editable=False)),
         ('table_block', organisms.AtomicTableBlock(
             table_options={'renderer': 'html'})),
         ('feedback', v1_blocks.Feedback()),
@@ -133,6 +142,10 @@ class DocumentDetailPage(AbstractFilterPage):
     template = 'document-detail/index.html'
 
     objects = PageManager()
+
+    search_fields = AbstractFilterPage.search_fields + [
+        index.SearchField('content')
+    ]
 
 
 class AgendaItemBlock(blocks.StructBlock):
@@ -189,7 +202,7 @@ class EventPage(AbstractFilterPage):
                   "It can be obtained by clicking on Share > "
                   "Embed on Youtube.",
         validators=[
-            RegexValidator(regex='^https?:\/\/www\.youtube\.com\/embed\/.*$')
+            RegexValidator(regex=r'^https?:\/\/www\.youtube\.com\/embed\/.*$')
         ]
     )
 
@@ -201,8 +214,7 @@ class EventPage(AbstractFilterPage):
     live_stream_url = models.URLField(
         "URL",
         blank=True,
-        help_text="Format: https://www.ustream.tv/embed/video_id "
-                  "or https://www.youtube.com/embed/video_id."
+        help_text="Format: https://www.youtube.com/embed/video_id."
     )
     live_stream_date = models.DateTimeField(
         "Go Live Date",
@@ -210,6 +222,7 @@ class EventPage(AbstractFilterPage):
         null=True
     )
     # Venue content fields
+    venue_coords = models.CharField(max_length=100, blank=True)
     venue_name = models.CharField(max_length=100, blank=True)
     venue_street = models.CharField(max_length=100, blank=True)
     venue_suite = models.CharField(max_length=100, blank=True)
@@ -219,6 +232,16 @@ class EventPage(AbstractFilterPage):
     agenda_items = StreamField([('item', AgendaItemBlock())], blank=True)
 
     objects = CFGOVPageManager()
+
+    search_fields = AbstractFilterPage.search_fields + [
+        index.SearchField('body'),
+        index.SearchField('archive_body'),
+        index.SearchField('live_stream_url'),
+        index.SearchField('flickr_url'),
+        index.SearchField('youtube_url'),
+        index.SearchField('future_body'),
+        index.SearchField('agenda_items')
+    ]
 
     # General content tab
     content_panels = CFGOVPage.content_panels + [
@@ -281,19 +304,21 @@ class EventPage(AbstractFilterPage):
         return super(EventPage, self).page_js + ['video-player.js']
 
     def location_image_url(self, scale='2', size='276x155', zoom='12'):
-        center = 'Washington, DC'
-        if self.venue_city:
-            center = self.venue_city
-        if self.venue_state:
-            center = center + ', ' + self.venue_state
-        options = {
-            'center': center,
-            'scale': scale,
-            'size': size,
-            'zoom': zoom
-        }
-        url = 'https://maps.googleapis.com/maps/api/staticmap?'
-        return '{url}{options}'.format(
-            url=url,
-            options=urlencode(options)
+        if not self.venue_coords:
+            self.venue_coords = get_venue_coords(
+                self.venue_city, self.venue_state
+            )
+        api_url = 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static'
+        static_map_image_url = '{}/{},{}/{}?access_token={}'.format(
+            api_url,
+            self.venue_coords,
+            zoom,
+            size,
+            settings.MAPBOX_ACCESS_TOKEN
         )
+
+        return static_map_image_url
+
+    def save(self, *args, **kwargs):
+        self.venue_coords = get_venue_coords(self.venue_city, self.venue_state)
+        return super(EventPage, self).save(*args, **kwargs)

@@ -6,12 +6,13 @@ from wagtail.wagtailimages.tests.utils import get_test_image_file
 
 from scripts import _atomic_helpers as atomic
 
-from v1.atomic_elements.organisms import InfoUnitGroup, SnippetList, TableBlock
+from v1.atomic_elements.organisms import InfoUnitGroup, TableBlock
 from v1.models.browse_page import BrowsePage
 from v1.models.images import CFGOVImage
 from v1.models.landing_page import LandingPage
 from v1.models.learn_page import LearnPage
-from v1.models.snippets import Contact, Resource
+from v1.models.resources import Resource
+from v1.models.snippets import Contact
 from v1.models.sublanding_page import SublandingPage
 from v1.tests.wagtail_pages.helpers import publish_page
 
@@ -128,40 +129,6 @@ class OrganismsTestCase(TestCase):
         response = django_client.get('/learn/')
         self.assertContains(response, 'Full width text content')
 
-    def test_image_text_groups(self):
-        """Image Text Groups correctly display on a Landing Page"""
-        landing_page = LandingPage(
-            title='Landing Page',
-            slug='landing',
-        )
-        landing_page.content = StreamValue(
-            landing_page.content.stream_block,
-            [
-                atomic.image_text_50_50_group,
-                atomic.image_text_25_75_group
-            ],
-            True,
-        )
-        publish_page(child=landing_page)
-        response = django_client.get('/landing/')
-        self.assertContains(response, 'Image 25 75 Group')
-        self.assertContains(response, 'Image 50 50 Group')
-
-    def test_half_width_link_blob_group(self):
-        """Half width link blob group correctly displays on a Landing Page"""
-        landing_page = LandingPage(
-            title='Landing Page',
-            slug='landing',
-        )
-        landing_page.content = StreamValue(
-            landing_page.content.stream_block,
-            [atomic.half_width_link_blob_group],
-            True
-        )
-        publish_page(child=landing_page)
-        response = django_client.get('/landing/')
-        self.assertContains(response, 'Half Width Link Blob Group')
-
     def test_info_unit_group(self):
         """Info Unit Group correctly displays on a Landing Page"""
         landing_page = LandingPage(
@@ -263,21 +230,6 @@ class OrganismsTestCase(TestCase):
         self.assertContains(response, 'Item Introduction')
         self.assertContains(response, 'Item introduction body')
 
-    def test_html_block(self):
-        """ HTML Block correctly renders HTML on a Browse Page"""
-        browse_page = BrowsePage(
-            title='Browse Page',
-            slug='browse',
-        )
-        browse_page.content = StreamValue(
-            browse_page.content.stream_block,
-            [atomic.html_block],
-            True
-        )
-        publish_page(child=browse_page)
-        response = self.client.get('/browse/')
-        self.assertContains(response, 'Age 30 to 44')
-
     def test_data_snapshot(self):
         """ Data Snapshot correctly renders fields on a Browse Page"""
         browse_page = BrowsePage(
@@ -297,10 +249,45 @@ class OrganismsTestCase(TestCase):
         self.assertContains(response, '5 million')
         self.assertContains(response, '$64 billion')
         self.assertContains(response, '5% increase')
-        self.assertContains(response, 'January 2015')
-        self.assertContains(response, 'Auto loans originated')
+        self.assertContains(response, 'January&nbsp;2015')
+        self.assertContains(response, 'Loans originated')
         self.assertContains(response, 'Dollar value of new loans')
         self.assertContains(response, 'In year-over-year originations')
+        # Should not include inquiry or tightness information
+        self.assertNotContains(response, '7.4% decrease')
+        self.assertNotContains(response, 'In year-over-year inquiries')
+        self.assertNotContains(response, '2.8% increase')
+        self.assertNotContains(response, 'In year-over-year credit tightness')
+
+    def test_data_snapshot_with_optional_fields(self):
+        """ Data Snapshot with inquiry and tightness information correctly renders
+        fields on a Browse Page"""
+        browse_page = BrowsePage(
+            title='Browse Page',
+            slug='browse',
+        )
+
+        # Adds a AUT market to a browse page
+        browse_page.content = StreamValue(
+            browse_page.content.stream_block,
+            [atomic.data_snapshot_with_optional_fields],
+            True
+        )
+        publish_page(child=browse_page)
+
+        response = self.client.get('/browse/')
+        self.assertContains(response, '5 million')
+        self.assertContains(response, '$64 billion')
+        self.assertContains(response, '5% increase')
+        self.assertContains(response, 'January&nbsp;2015')
+        self.assertContains(response, 'Loans originated')
+        self.assertContains(response, 'Dollar value of new loans')
+        self.assertContains(response, 'In year-over-year originations')
+        # Should  include inquiry or tightness information
+        self.assertContains(response, '7.4% decrease')
+        self.assertContains(response, 'In year-over-year inquiries')
+        self.assertContains(response, '2.8% increase')
+        self.assertContains(response, 'In year-over-year credit tightness')
 
     def test_chart_block(self):
         """ Chart Block correctly renders fields on a Browse Page"""
@@ -320,15 +307,15 @@ class OrganismsTestCase(TestCase):
         response = self.client.get('/browse/')
         self.assertContains(response, 'Volume of credit cards originated')
         self.assertContains(response, 'foo/bar.csv')
-        self.assertContains(response, 'Data not final')
+        self.assertContains(response, 'Data not final.')
         self.assertContains(
             response,
-            'The most recent data available in each visualization is for April 2016'
+            'The most recent data available in this visualization are for April 2016'
         )
         self.assertContains(response, 'January 2018')
 
-    def test_snippet_list(self):
-        """ Snippet List renders thumbnails when show_thumbnails is True"""
+    def test_resource_list(self):
+        """ Resource List renders thumbnails when show_thumbnails is True"""
         browse_page = BrowsePage(
             title='Browse Page',
             slug='browse',
@@ -343,11 +330,11 @@ class OrganismsTestCase(TestCase):
         self.create_resource()
 
         response = self.client.get('/browse/')
-        self.assertContains(response, 'Test Snippet List')
+        self.assertContains(response, 'Test Resource List')
         self.assertContains(response, 'Test Resource')
 
-    def test_snippet_list_show_thumbnails_false(self):
-        """ Snippet List doesn't show thumbs when show_thumbnails is False"""
+    def test_resource_list_show_thumbnails_false(self):
+        """ Resource List doesn't show thumbs when show_thumbnails is False"""
         no_thumbnails_page = BrowsePage(
             title='No Thumbnails Page',
             slug='no-thumbnails',
@@ -362,10 +349,10 @@ class OrganismsTestCase(TestCase):
         self.create_resource()
 
         response = self.client.get('/no-thumbnails/')
-        self.assertNotContains(response, 'o-snippet-list_list-thumbnail')
+        self.assertNotContains(response, 'o-resource-list_list-thumbnail')
 
-    def test_snippet_list_show_thumbnails_true(self):
-        """ Snippet List shows thumbnails when show_thumbnails is True"""
+    def test_resource_list_show_thumbnails_true(self):
+        """ Resource List shows thumbnails when show_thumbnails is True"""
         thumbnails_page = BrowsePage(
             title='Thumbnails Page',
             slug='thumbnails',
@@ -380,10 +367,10 @@ class OrganismsTestCase(TestCase):
         self.create_resource()
 
         response = self.client.get('/thumbnails/')
-        self.assertContains(response, 'o-snippet-list_list-thumbnail')
+        self.assertContains(response, 'o-resource-list_list-thumbnail')
 
-    def test_snippet_list_set_col_width(self):
-        """ Snippet List Assets column width is fixed when set"""
+    def test_resource_list_set_col_width(self):
+        """ Resource List Assets column width is fixed when set"""
         assets_width_page = BrowsePage(
             title='Assets Width Test Page',
             slug='assets-width',
@@ -399,11 +386,6 @@ class OrganismsTestCase(TestCase):
 
         response = self.client.get('/assets-width/')
         self.assertContains(response, 'u-w40pct"')
-
-    def test_snippet_list_has_snippet_types(self):
-        """Ensure that the SnippetList block has snippet type choices."""
-        form = SnippetList().render_form({})
-        self.assertIn('option value="v1.models.snippets.', form)
 
 
 class TestInfoUnitGroup(TestCase):

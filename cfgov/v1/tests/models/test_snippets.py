@@ -1,98 +1,21 @@
+# -*- coding: utf-8 -*-
+
+import six
+from unittest import skipIf
+
 from django.test import TestCase
 
 from wagtail.tests.testapp.models import SimplePage
 from wagtail.wagtailcore.models import Site
 
 from v1.blocks import ReusableTextChooserBlock
-from v1.models.snippets import Contact, Resource, ReusableText
-
-
-class TestFilterByTags(TestCase):
-    def setUp(self):
-        self.snippet1 = Resource.objects.create(title='Test snippet 1')
-        self.snippet1.tags.add('tagA')
-        self.snippet2 = Resource.objects.create(title='Test snippet 2')
-        self.snippet2.tags.add('tagA')
-        self.snippet2.tags.add('tagB')
-
-    def test_empty_list_argument_returns_all(self):
-        self.assertSequenceEqual(
-            Resource.objects.filter_by_tags([]),
-            [self.snippet1, self.snippet2]
-        )
-
-    def test_all_items_with_single_tag_are_returned(self):
-        self.assertSequenceEqual(
-            Resource.objects.filter_by_tags(['tagA']),
-            [self.snippet1, self.snippet2]
-        )
-
-    def test_nothing_returned_when_tag_is_unused(self):
-        self.assertSequenceEqual(
-            Resource.objects.filter_by_tags(['tagC']),
-            []
-        )
-
-    def test_item_with_multiple_tags_is_returned(self):
-        self.assertIn(
-            self.snippet2,
-            Resource.objects.filter_by_tags(['tagA', 'tagB'])
-        )
-
-    def test_item_with_only_some_of_selected_tags_is_not_returned(self):
-        self.assertNotIn(
-            self.snippet1,
-            Resource.objects.filter_by_tags(['tagA', 'tagB'])
-        )
-
-
-class TestOrderedResources(TestCase):
-    def setUp(self):
-        self.snippetBBC = Resource.objects.create(title='BBC')
-        self.snippetZebra = Resource.objects.create(title='Zebra')
-        self.snippetAbc = Resource.objects.create(title='Abc')
-
-    def test_default_alphabetical_ordering(self):
-        self.assertSequenceEqual(
-            Resource.objects.all(),
-            [self.snippetAbc, self.snippetBBC, self.snippetZebra]
-        )
-
-    def test_partial_explicit_ordering(self):
-        self.snippetBBC.order = 1
-        self.snippetBBC.save()
-
-        self.assertSequenceEqual(
-            Resource.objects.all(),
-            [self.snippetAbc, self.snippetZebra, self.snippetBBC]
-        )
-
-    def test_total_explicit_ordering(self):
-        self.snippetAbc.order = 23
-        self.snippetAbc.save()
-        self.snippetBBC.order = 1
-        self.snippetBBC.save()
-        self.snippetZebra.order = 32000
-        self.snippetZebra.save()
-
-        self.assertSequenceEqual(
-            Resource.objects.all(),
-            [self.snippetBBC, self.snippetAbc, self.snippetZebra]
-        )
-
-    def test_order_tiebreaking(self):
-        self.snippetAbc.order = 1
-        self.snippetAbc.save()
-        self.snippetBBC.order = 1
-        self.snippetBBC.save()
-
-        self.assertSequenceEqual(
-            Resource.objects.all(),
-            [self.snippetZebra, self.snippetAbc, self.snippetBBC]
-        )
+from v1.models.snippets import (
+    Contact, GlossaryTerm, RelatedResource, ReusableText
+)
 
 
 class TestUnicodeCompatibility(TestCase):
+    @skipIf(six.PY3, "all strings are unicode")
     def test_unicode_contact_heading_str(self):
         contact = Contact(heading=u'Unicod\xeb')
         self.assertEqual(str(contact), 'Unicod\xc3\xab')
@@ -100,18 +23,40 @@ class TestUnicodeCompatibility(TestCase):
 
     def test_unicode_contact_heading_unicode(self):
         contact = Contact(heading=u'Unicod\xeb')
-        self.assertEqual(unicode(contact), u'Unicod\xeb')
-        self.assertIsInstance(unicode(contact), unicode)
+        self.assertEqual(six.text_type(contact), u'Unicod\xeb')
+        self.assertIsInstance(six.text_type(contact), six.text_type)
 
-    def test_unicode_resource_title_str(self):
-        resource = Resource(title=u'Unicod\xeb')
-        self.assertEqual(str(resource), 'Unicod\xc3\xab')
-        self.assertIsInstance(str(resource), str)
 
-    def test_unicode_resource_title_unicode(self):
-        resource = Resource(title=u'Unicod\xeb')
-        self.assertEqual(unicode(resource), u'Unicod\xeb')
-        self.assertIsInstance(unicode(resource), unicode)
+class TestTranslations(TestCase):
+
+    def test_related_resource_translations(self):
+
+        test_resource = RelatedResource(
+            title='English title',
+            title_es='Spanish title',
+            text='English text.',
+            text_es='Spanish text.',
+        )
+        self.assertEqual(
+            str(test_resource), test_resource.title)
+        self.assertEqual(
+            test_resource.trans_title(), test_resource.title)
+        self.assertEqual(
+            test_resource.trans_text(), test_resource.text)
+        self.assertEqual(
+            test_resource.trans_title('es'), test_resource.title_es)
+        self.assertEqual(
+            test_resource.trans_text('es'), test_resource.text_es)
+
+
+class TestModelStrings(TestCase):
+
+    def test_reusable_text_string(self):
+        test_snippet = ReusableText(
+            title='Snippet title',
+            sidefoot_heading='Sidefoot heading',
+            text='Snippet text')
+        self.assertEqual(str(test_snippet), test_snippet.title)
 
 
 class TestReusableTextRendering(TestCase):
@@ -128,3 +73,44 @@ class TestReusableTextRendering(TestCase):
         html = '<a linktype="page" id="12345">Link</a>'
         block = ReusableTextChooserBlock(ReusableText)
         self.assertIn('<a>', block.render({'text': html}))
+
+
+class TestGlossaryTerm(TestCase):
+    def test_term(self):
+        glossary_term = GlossaryTerm(name_en='cool', name_es='chévere')
+        glossary_term.save()
+        self.assertEqual(glossary_term.name('es'), 'chévere')
+        self.assertEqual(glossary_term.name(), 'cool')
+        self.assertEqual(glossary_term.name('en'), 'cool')
+    
+    def test_answer_page_url_no_answer_page(self):
+        glossary_term = GlossaryTerm(name_en='foo')
+        glossary_term.save()
+        self.assertIsNone(glossary_term.answer_page_url('es'))
+        self.assertIsNone(glossary_term.answer_page_url())
+        self.assertIsNone(glossary_term.answer_page_url('en'))
+
+
+    def test_presence_of_heading(self):
+        sidefoot_heading = 'Reusable text snippet heading'
+        html = '<p>This is the text of the reusable snippet.</p>'
+        block = ReusableTextChooserBlock(ReusableText)
+        self.assertIn(
+            '<h2 class="a-heading">',
+            block.render({
+                'sidefoot_heading': sidefoot_heading,
+                'text': html
+            })
+        )
+
+    def test_lack_of_heading(self):
+        sidefoot_heading = None
+        html = '<p>This is the text of the reusable snippet.</p>'
+        block = ReusableTextChooserBlock(ReusableText)
+        self.assertNotIn(
+            '<h2 class="a-heading">',
+            block.render({
+                'sidefoot_heading': sidefoot_heading,
+                'text': html
+            })
+        )

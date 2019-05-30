@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 import logging
-from cStringIO import StringIO
+from six import BytesIO
 
 import unicodecsv
 from dateutil import parser
@@ -117,7 +117,7 @@ def export_downloadable_csv(geo_type, late_value):
     Each CSV is to start with a National row for comparison.
 
     CSVs are posted at
-    http://files.consumerfinance.gov.s3.amazonaws.com/data/mortgage-performance/downloads/  # noqa: E501
+    https://files.consumerfinance.gov/data/mortgage-performance/downloads/  # noqa: E501
 
     The script also stores URLs and file sizes for use in page footnotes.
     """
@@ -158,7 +158,7 @@ def export_downloadable_csv(geo_type, late_value):
         geo_type, LATE_VALUE_TITLE[late_value], thru_month)
     _map = geo_dict.get(geo_type)
     fips_list = _map['fips_list']
-    csvfile = StringIO()
+    csvfile = BytesIO()
     writer = unicodecsv.writer(csvfile)
     writer.writerow(_map['headings'] + date_list)
     nation_starter = [NATION_STARTER[heading]

@@ -1,9 +1,13 @@
 // Required modules.
-const BaseTransition = require( '../../modules/transition/BaseTransition' );
-const behavior = require( '../../modules/util/behavior' );
-const breakpointState = require( '../../modules/util/breakpoint-state' );
-const EventObserver = require( '../../modules/util/EventObserver' );
-const standardType = require( '../../modules/util/standard-type' );
+import BaseTransition from '../../modules/transition/BaseTransition';
+import { checkBehaviorDom } from '../../modules/util/behavior';
+import * as breakpointState from '../../modules/util/breakpoint-state';
+import EventObserver from '../../modules/util/EventObserver';
+import {
+  BEHAVIOR_PREFIX,
+  JS_HOOK,
+  noopFunct
+} from '../../modules/util/standard-type';
 
 /**
  * FlyoutMenu
@@ -30,16 +34,14 @@ const standardType = require( '../../modules/util/standard-type' );
  */
 function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inline-comments, max-len
 
-  const BASE_CLASS = standardType.BEHAVIOR_PREFIX + 'flyout-menu';
-  const SEL_PREFIX = '[' + standardType.JS_HOOK + '=' + BASE_CLASS;
+  const BASE_CLASS = BEHAVIOR_PREFIX + 'flyout-menu';
+  const SEL_PREFIX = '[' + JS_HOOK + '=' + BASE_CLASS;
   const BASE_SEL = SEL_PREFIX + ']';
 
   // Verify that the expected dom attributes are present.
-  const _dom = behavior.checkBehaviorDom( element, BASE_CLASS );
-  const _triggerDom =
-    behavior.checkBehaviorDom( element, BASE_CLASS + '_trigger' );
-  const _contentDom =
-    behavior.checkBehaviorDom( element, BASE_CLASS + '_content' );
+  const _dom = checkBehaviorDom( element, BASE_CLASS );
+  const _triggerDom = checkBehaviorDom( element, BASE_CLASS + '_trigger' );
+  const _contentDom = checkBehaviorDom( element, BASE_CLASS + '_content' );
 
   let _altTriggerDom = _dom.querySelector( SEL_PREFIX + '_alt-trigger]' );
 
@@ -69,7 +71,7 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
   /* Set this function to a queued collapse function,
      which is called if collapse is called while
      expand is animating. */
-  let _deferFunct = standardType.noopFunct;
+  let _deferFunct = noopFunct;
 
   // Whether this instance's behaviors are suspended or not.
   let _suspended = true;
@@ -97,7 +99,6 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
 
     // Set initial aria attributes to false.
     _setAriaAttr( 'expanded', _triggerDom, 'false' );
-    _setAriaAttr( 'pressed', _triggerDom, 'false' );
 
     _triggerDom.addEventListener( 'click', handleTriggerClickedBinded );
     _triggerDom.addEventListener( 'touchstart', _handleTouchStart );
@@ -225,12 +226,12 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
   function expand() {
     if ( !_isExpanded && !_isAnimating ) {
       _isAnimating = true;
-      _deferFunct = standardType.noopFunct;
+      _deferFunct = noopFunct;
       this.dispatchEvent(
         'expandBegin',
         { target: this, type: 'expandBegin' }
       );
-      _setAriaAttr( 'pressed', _triggerDom, true );
+
       if ( _expandTransitionMethod ) {
         const hasTransition = _expandTransition &&
                               _expandTransition.isAnimated();
@@ -264,7 +265,7 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
    */
   function collapse() {
     if ( _isExpanded && !_isAnimating ) {
-      _deferFunct = standardType.noopFunct;
+      _deferFunct = noopFunct;
       _isAnimating = true;
       _isExpanded = false;
       this.dispatchEvent(
@@ -296,7 +297,6 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
       }
 
       _setAriaAttr( 'expanded', _triggerDom, false );
-      _setAriaAttr( 'pressed', _triggerDom, false );
       _setAriaAttr( 'expanded', _contentDom, false );
 
       /* TODO: Remove or uncomment when keyboard navigation is in.
@@ -352,7 +352,7 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
    * @param {Function} method
    *   The transition method to call on expand.
    * @param {Array} [args]
-   *   List of arguments to apply to collapse method.
+   *   List of arguments to apply to expand method.
    */
   function setExpandTransition( transition, method, args ) {
     _expandTransition = transition;
@@ -383,12 +383,14 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
     transition = getTransition( FlyoutMenu.COLLAPSE_TYPE );
     if ( transition ) { transition.remove(); }
 
-    _expandTransition = standardType.UNDEFINED;
-    _expandTransitionMethod = standardType.UNDEFINED;
+    let UNDEFINED;
+
+    _expandTransition = UNDEFINED;
+    _expandTransitionMethod = UNDEFINED;
     _expandTransitionMethodArgs = [];
 
-    _collapseTransition = standardType.UNDEFINED;
-    _collapseTransitionMethod = standardType.UNDEFINED;
+    _collapseTransition = UNDEFINED;
+    _collapseTransitionMethod = UNDEFINED;
     _collapseTransitionMethodArgs = [];
   }
 
@@ -512,4 +514,4 @@ function FlyoutMenu( element ) { // eslint-disable-line max-statements, no-inlin
   return this;
 }
 
-module.exports = FlyoutMenu;
+export default FlyoutMenu;

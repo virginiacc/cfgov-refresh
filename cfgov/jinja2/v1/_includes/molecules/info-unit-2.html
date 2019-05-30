@@ -22,8 +22,8 @@
 
    value.heading.level:          The heading level (H2, H3, H4). Default: H3
 
-   value.heading.icon:           An optional cf-icons icon code that
-                                 triggers the insertion of an icon before
+   value.heading.icon:           (Optional) A string containing cf-icon name
+                                 that triggers the insertion of an icon before
                                  the heading.
 
    value.body:                   (Optional) A string containing the content
@@ -61,13 +61,13 @@
 {%- if value.image.upload %}
     {%- set img = image(value.image.upload, 'original') %}
     {% if link_image_and_heading %}
-        <a href="{{ parse_links( value.links[0].url ) | safe }}">
+        <a href="{{ value.links[0].url | safe }}">
     {% endif %}
-        {%- if value.image.alt %}
+        {%- if image_alt_value(value.image) %}
             <img class="m-info-unit_image
                         {{- ' m-info-unit_image__square' if img.is_square else '' }}"
                  src="{{ img.url }}"
-                 alt="{{ value.image.alt }}">
+                 alt="{{ image_alt_value(value.image) }}">
         {%- else %}
             <div class="m-info-unit_image
                         {{- ' m-info-unit_image__square' if img.is_square else '' }}"
@@ -86,21 +86,15 @@
     {%- if value.heading %}
         {% if link_image_and_heading %}
             <a class="m-info-unit_heading-link"
-               href="{{ parse_links( value.links[0].url ) | safe }}">
+               href="{{ value.links[0].url | safe }}">
         {%- endif %}
-                <{{ value.heading.level -}}
-                    {%- if value.heading.icon -%}
-                        {{- ' class="cf-icon cf-icon-' ~ value.heading.icon ~ '"' -}}
-                    {%- endif -%}
-                >
-                    {{ value.heading.text | safe }}
-                </{{ value.heading.level }}>
+                {% include_block value.heading %}
         {%- if link_image_and_heading %}
             </a>
         {%- endif -%}
     {%- endif %}
 
-            {{ parse_links( value.body ) | safe }}
+            {{ value.body | safe }}
 
         {% if value.links %}
             <ul class="m-list m-list__links u-mt15">
@@ -116,7 +110,7 @@
                         else 'Learn More' -%}
                     {%- set link = '<a class="m-list_link" href="' ~
                         link.url ~ '">' ~ link_text ~ '</a>' %}
-                    {{ parse_links( link ) | safe }}
+                    {{ link | safe }}
                 {%- endif %}
                 </li>
             {%- endfor %}

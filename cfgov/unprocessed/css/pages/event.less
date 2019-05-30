@@ -57,7 +57,7 @@
 
 .event-meta {
     &__medium {
-        .u-webfont-medium();
+        font-weight: 500;
     }
 }
 
@@ -137,20 +137,6 @@
         text-transform: uppercase;
     }
 
-    .event-calendar_download {
-        .u-webfont-demi();
-
-        display: block;
-        padding-top: .2em;
-        text-decoration: none;
-        text-transform: none;
-
-        .respond-to-max(@bp-xs-max, {
-            margin-top: 1em;
-            padding-top: .5em;
-        });
-    }
-
     .event-meta_address {
         .respond-to-max(@bp-xs-max, {
             margin: 0;
@@ -172,12 +158,6 @@
     color: @black;
     text-transform: uppercase;
     padding: 6px 15px 4px;
-
-    .cf-icon {
-        font-size: 20px;
-        vertical-align: middle;
-        margin-right: 5px;
-    }
 }
 
 .event-venu_live-btn_text {

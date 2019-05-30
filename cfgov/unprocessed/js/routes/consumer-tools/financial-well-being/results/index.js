@@ -1,3 +1,2 @@
-const fwbResults = require( '../../../../apps/financial-well-being/fwb-results' );
-
+import fwbResults from '../../../../../apps/financial-well-being/js/fwb-results';
 fwbResults.init();

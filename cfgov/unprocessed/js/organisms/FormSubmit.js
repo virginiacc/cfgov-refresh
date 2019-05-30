@@ -1,12 +1,12 @@
 // Required modules.
-const atomicHelpers = require( '../modules/util/atomic-helpers' );
-const scroll = require( '../modules/util/scroll' );
-const AlphaTransition = require( '../modules/transition/AlphaTransition' );
-const BaseTransition = require( '../modules/transition/BaseTransition' );
-const ERROR_MESSAGES = require( '../config/error-messages-config' );
+import { checkDom, setInitFlag } from '../modules/util/atomic-helpers';
+import { scrollIntoView } from '../modules/util/scroll';
+import AlphaTransition from '../modules/transition/AlphaTransition';
+import BaseTransition from '../modules/transition/BaseTransition';
+import ERROR_MESSAGES from '../config/error-messages-config';
+import Notification from '../molecules/Notification';
+import EventObserver from '../modules/util/EventObserver';
 const FORM_MESSAGES = ERROR_MESSAGES.FORM.SUBMISSION;
-const Notification = require( '../molecules/Notification' );
-const EventObserver = require( '../modules/util/EventObserver' );
 
 /**
  * FormSubmit
@@ -25,10 +25,12 @@ const EventObserver = require( '../modules/util/EventObserver' );
 function FormSubmit( element, baseClass, opts ) {
   opts = opts || {};
   let UNDEFINED;
-  const _baseElement = atomicHelpers.checkDom( element, baseClass );
+  const _baseElement = checkDom( element, baseClass );
   const _formElement = _baseElement.querySelector( 'form' );
-  const _notificationElement = _baseElement.querySelector( '.m-notification' );
-  const _notification = new Notification( _baseElement );
+  const _notificationElement = _baseElement.querySelector(
+    `.${ Notification.BASE_CLASS }`
+  );
+  let _notification;
   let _cachedFields;
   const eventObserver = new EventObserver();
   const self = this;
@@ -41,11 +43,13 @@ function FormSubmit( element, baseClass, opts ) {
    *   or undefined if it was already initialized.
    */
   function init() {
-    if ( !atomicHelpers.setInitFlag( _baseElement ) ) {
+    if ( !setInitFlag( _baseElement ) ) {
       return UNDEFINED;
     }
     _cachedFields = _cacheFields();
     _formElement.addEventListener( 'submit', _onSubmit );
+    _notification = new Notification( _baseElement );
+    _notification.init();
 
     return this;
   }
@@ -61,7 +65,7 @@ function FormSubmit( element, baseClass, opts ) {
     _baseElement.classList.add( 'form-submitted' );
 
     if ( errors ) {
-      _displayNotification( _notification.ERROR, errors );
+      _displayNotification( Notification.ERROR, errors );
     } else {
       _submitForm();
     }
@@ -85,9 +89,9 @@ function FormSubmit( element, baseClass, opts ) {
    * @param {content} content for notification.
    */
   function _displayNotification( type, content ) {
-    _notification.setTypeAndContent( type, content );
+    _notification.update( type, content );
     _notification.show();
-    scroll.scrollIntoView( _notificationElement );
+    scrollIntoView( _notificationElement );
   }
 
   /**
@@ -120,21 +124,20 @@ function FormSubmit( element, baseClass, opts ) {
             const response = JSON.parse( xhr.responseText );
             result = response.result;
             message = response.message || '';
-            heading = response.header || '';
+            heading = response.heading || '';
           } catch ( err ) {
             // ignore lack of response
           }
           state = result === 'fail' ? 'ERROR' : 'SUCCESS';
         }
         if ( state === 'SUCCESS' && opts.replaceForm ) {
-          if ( !heading && opts.language !== 'es' ) {
-            heading = 'Thank you!';
-          }
           _replaceFormWithNotification( heading + ' ' + message );
         } else {
           const key = opts.language === 'es' ? state + '_ES' : state;
-          _displayNotification( _notification[state],
-            message || FORM_MESSAGES[key] );
+          _displayNotification(
+            Notification[state],
+            message || FORM_MESSAGES[key]
+          );
         }
         if ( state === 'SUCCESS' ) {
           self.dispatchEvent( 'success', { target: this, form: _formElement } );
@@ -150,7 +153,7 @@ function FormSubmit( element, baseClass, opts ) {
    */
   function _replaceFormWithNotification( message ) {
     const transition = new AlphaTransition( _baseElement ).init();
-    scroll.scrollIntoView( _formElement, { offset: 100, callback: fadeOutForm } );
+    scrollIntoView( _formElement, { offset: 100, callback: fadeOutForm } );
 
     function fadeOutForm() {
       transition.addEventListener( BaseTransition.END_EVENT, fadeInMessage );
@@ -158,12 +161,9 @@ function FormSubmit( element, baseClass, opts ) {
     }
 
     function fadeInMessage() {
-      if ( opts.minReplacementHeight ) {
-        _baseElement.style.marginBottom = Math.min( _formElement.offsetHeight, 100 ) + 'px';
-      }
-      _formElement.style.display = 'none';
-      _notification.setTypeAndContent( _notification.SUCCESS, message );
+      _notification.update( Notification.SUCCESS, message );
       _notification.show();
+      _baseElement.replaceChild( _notificationElement, _formElement );
       transition.removeEventListener( BaseTransition.END_EVENT, fadeInMessage );
       transition.fadeIn();
     }
@@ -237,4 +237,4 @@ function FormSubmit( element, baseClass, opts ) {
   return this;
 }
 
-module.exports = FormSubmit;
+export default FormSubmit;

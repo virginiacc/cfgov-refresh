@@ -1,12 +1,13 @@
 from __future__ import print_function
 
+import contextlib
 import importlib
-import itertools
 import logging
 import os
 import re
 import subprocess
 import sys
+from six import StringIO
 
 from django.apps import apps
 from django.conf import settings
@@ -14,29 +15,24 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.db import connection
 from django.db.migrations.loader import MigrationLoader
 from django.test import RequestFactory
-from django.test.runner import DiscoverRunner, is_discoverable
+from django.test.runner import DiscoverRunner
 
 from mock import Mock
 from scripts import initial_data, test_data
 
 
-class OptionalAppsMixin(object):
-    def build_suite(self, test_labels=None, extra_tests=None, **kwargs):
-        if not test_labels:
-            app_names = set(itertools.chain(*(
-                optional_app['apps']
-                for optional_app in settings.OPTIONAL_APPS
-            )))
-
-            discoverable_app_names = filter(is_discoverable, app_names)
-
-            test_labels = list(discoverable_app_names) + ['.']
-
-        return super(OptionalAppsMixin, self).build_suite(
-            test_labels=test_labels,
-            extra_tests=extra_tests,
-            **kwargs
-        )
+try:
+    from contextlib import redirect_stdout
+except ImportError:
+    # contextlib.redirect_stdout exists in Python 3 but not in Python 2.
+    # This is an approximation.
+    @contextlib.contextmanager
+    def redirect_stdout(new_target):
+        sys.stdout = new_target
+        try:
+            yield
+        finally:
+            sys.stdout = sys.__stdout__
 
 
 class PlaceholderJSMixin(object):
@@ -71,8 +67,7 @@ class PlaceholderJSMixin(object):
                     f.write(self.PLACEHOLDER_STRING)
 
 
-class TestDataTestRunner(OptionalAppsMixin, PlaceholderJSMixin,
-                         DiscoverRunner):
+class TestDataTestRunner(PlaceholderJSMixin, DiscoverRunner):
     def run_tests(self, test_labels, extra_tests=None, **kwargs):
         # Disable logging below CRITICAL during tests.
         logging.disable(logging.CRITICAL)
@@ -175,9 +170,9 @@ class AcceptanceTestRunner(TestDataTestRunner):
 
 class HtmlMixin(object):
     def assertHtmlRegexpMatches(self, s, r):
-        s_no_right_spaces = re.sub('>\s*', '>', s)
-        s_no_left_spaces = re.sub('\s*([<"])', r'\1', s_no_right_spaces)
-        s_no_extra_spaces = re.sub('\s+', ' ', s_no_left_spaces)
+        s_no_right_spaces = re.sub(r'>\s*', '>', s)
+        s_no_left_spaces = re.sub(r'\s*([<"])', r'\1', s_no_right_spaces)
+        s_no_extra_spaces = re.sub(r'\s+', ' ', s_no_left_spaces)
 
         self.assertIsNotNone(
             re.search(r, s_no_extra_spaces.strip(), flags=re.DOTALL),
@@ -193,3 +188,22 @@ class HtmlMixin(object):
             self.assertHtmlRegexpMatches(str(rendered_html), s)
         except AssertionError:
             self.fail('rendered page HTML did not match {}'.format(s))
+
+
+class StdoutCapturingTestRunner(TestDataTestRunner):
+    def run_suite(self, suite, **kwargs):
+        captured_stdout = StringIO()
+        with redirect_stdout(captured_stdout):
+            return_value = super(StdoutCapturingTestRunner, self).run_suite(
+                suite,
+                **kwargs
+            )
+
+        if captured_stdout.getvalue():
+            raise RuntimeError(
+                'unit tests should avoid writing to stdout: {}'.format(
+                    captured_stdout.getvalue()
+                )
+            )
+
+        return return_value

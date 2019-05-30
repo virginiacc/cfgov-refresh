@@ -49,10 +49,6 @@ related_links = {
         ]
     }
 }
-rss_feed = {
-    "type": "rss_feed",
-    "value": "blog_feed"
-}
 featured_content = {
     'type': 'featured_content',
     'value': {
@@ -75,6 +71,19 @@ hero = {
     'type': 'hero',
     'value': {
         'heading': "this is a hero heading"
+    }
+}
+notification = {
+    'type': 'notification',
+    'value': {
+        'message': "this is a notification message",
+        'explanation': "this is a notification explanation",
+        'links': [
+            {
+                "url": "/",
+                "text": "this is a notification link"
+            }
+        ]
     }
 }
 related_metadata = {
@@ -117,28 +126,6 @@ well = {
     'type': 'well',
     'value': {
         'content': "this is well content"
-    }
-}
-filter_controls = {
-    'type': 'filter_controls',
-    'value': {
-            'is_expanded': False,
-            'post_date_description': 'Published',
-            'link_image_and_heading': False,
-            'topics': True,
-            'title': True,
-            'label': '',
-            'date_range': True,
-            'is_midtone': False,
-            'authors': True,
-            'form_type': 'filterable-list',
-            'is_bordered': False,
-            'output_5050': False,
-            'categories': {
-                'show_preview_categories': True,
-                'page_type': 'blog',
-                'filter_category': True
-            }
     }
 }
 full_width_text = {
@@ -252,13 +239,6 @@ info_unit_group = {
     }
 }
 
-html_block = {
-    "type": "html_block",
-    "value": {
-        "html_url": "http://raw.githubusercontent.com/cfpb/consumer-credit-trends/master/charts/auto-loans/borrower-age/figure-4a__30-to-44__auto-loans.html"  # noqa
-    }
-}
-
 email_signup = {
     'type': 'email_signup',
     'value': {
@@ -309,8 +289,8 @@ reg_comment = {
 snippet_list_show_thumbnails_false = {
     "type": "snippet_list",
     "value": {
-        "heading": "Test Snippet List",
-        "snippet_type": "v1.models.snippets.Resource",
+        "heading": "Test Resource List",
+        "snippet_type": "v1.models.resources.Resource",
         "show_thumbnails": False,
     }
 }
@@ -318,8 +298,8 @@ snippet_list_show_thumbnails_false = {
 snippet_list_show_thumbnails_true = {
     "type": "snippet_list",
     "value": {
-        "heading": "Test Snippet List",
-        "snippet_type": "v1.models.snippets.Resource",
+        "heading": "Test Resource List",
+        "snippet_type": "v1.models.resources.Resource",
         "show_thumbnails": True,
     }
 }
@@ -327,8 +307,8 @@ snippet_list_show_thumbnails_true = {
 snippet_list_actions_column_width_40 = {
     "type": "snippet_list",
     "value": {
-        "heading": "Test Snippet List",
-        "snippet_type": "v1.models.snippets.Resource",
+        "heading": "Test Resource List",
+        "snippet_type": "v1.models.resources.Resource",
         "actions_column_width": "40",
     }
 }
@@ -406,25 +386,27 @@ job_listing_table = {
     },
 }
 
-conference_registration_form = {
-    'type': 'conference_registration_form',
+data_snapshot = {
+    'type': u'data_snapshot',
     'value': {
-        'at_capacity_message': [
-            {
-                'type': 'content',
-                'value': 'Full.',
-            },
-        ],
-        'code': 'GDCODE',
-        'capacity': 100,
-        'failure_message': 'Oops.',
-        'heading': 'Register.',
-        'sessions': ['Morning', 'Afternoon'],
-        'success_message': 'Success!',
-    },
+        'market_key': u'STU',
+        'num_originations': u'5 million',
+        'value_originations': u'$64 billion',
+        'year_over_year_change': u'5% increase',
+        'last_updated_projected_data': u'2015-01-01',
+        'num_originations_text': u'Loans originated',
+        'value_originations_text': u'Dollar value of new loans',
+        'year_over_year_change_text': u'In year-over-year originations',
+        'inquiry_month': u'',
+        'inquiry_year_over_year_change': u'',
+        'inquiry_year_over_year_change_text': u'',
+        'tightness_month': u'',
+        'tightness_year_over_year_change': u'',
+        'tightness_year_over_year_change_text': u'',
+    }
 }
 
-data_snapshot = {
+data_snapshot_with_optional_fields = {
     'type': u'data_snapshot',
     'value': {
         'market_key': u'AUT',
@@ -432,9 +414,15 @@ data_snapshot = {
         'value_originations': u'$64 billion',
         'year_over_year_change': u'5% increase',
         'last_updated_projected_data': u'2015-01-01',
-        'num_originations_text': u'Auto loans originated',
+        'num_originations_text': u'Loans originated',
         'value_originations_text': u'Dollar value of new loans',
         'year_over_year_change_text': u'In year-over-year originations',
+        'inquiry_month': u'2015-01-01',
+        'inquiry_year_over_year_change': u'7.4% decrease',
+        'inquiry_year_over_year_change_text': u'In year-over-year inquiries',
+        'tightness_month': u'2015-01-01',
+        'tightness_year_over_year_change': u'2.8% increase',
+        'tightness_year_over_year_change_text': u'In year-over-year credit tightness',  # noqa
     }
 }
 
@@ -448,14 +436,42 @@ chart_block = {
         'date_published': u'2018-01-01',
         'description': u'Description',
         'last_updated_projected_data': u'2016-04-01',
-        'note': 'Data not final',
+        'note': 'Data not final.',
     }
 }
+
+chart_block_inquiry_activity = {
+    'type': u'chart_block',
+    'value': {
+        'title': u'Indexed number of consumers with inquiries (beta)',
+        'chart_type': u'line-index',
+        'color_scheme': u'Purple',
+        'data_source': u'consumer-credit-trends/credit-cards/inq_data_CRC.csv',
+        # should get overwritten by data_snapshot.json
+        'date_published': u'2001-01-01',
+        'description': u'Indexed number of people with credit card inquiries.',
+        'note': 'Data from the last four months are not final.',
+    }
+}
+
+chart_block_credit_tightness = {
+    'type': u'chart_block',
+    'value': {
+        'title': u'Indexed number of consumers with credit tightness (beta)',
+        'chart_type': u'line-index',
+        'color_scheme': u'Purple',
+        'data_source': u'consumer-credit-trends/credit-cards/crt_data_CRC.csv',
+        # should get overwritten by data_snapshot.json
+        'date_published': u'2001-01-01',
+        'description': u'Indexed number of people who applied for credit cards but did not open a new account.',  # noqa
+        'note': 'Data from the last four months are not final.',
+    }
+}
+
 
 filter_controls = {
     'type': u'filter_controls',
     'value': {
-        'form_type': u'filterable-list',
         'categories': {
             'page_type': '',
         },

@@ -74,8 +74,6 @@
 */
 
 .m-list_link {
-    .u-webfont-medium();
-
     &.m-list_link__phone {
         .respond-to-min(@bp-sm-min, {
             .u-link__colors(@black);
@@ -116,39 +114,16 @@ dd {
 
 
 /* topdoc
-  name: Remove margin from last-children
-  family: cf-core
+  name: Eyebrow
+  family: cf-typography
   notes:
-    - "Remove margin bottom for items that close out a block to ensure the
-      60px margin on the block is concistent"
+    - "Sets a class alias for eyebrow-style headings"
   tags:
     - cf-core
 */
 
-p:last-child,
-ul:last-child,
-.m-list__links .m-list_item:last-child {
-    margin-bottom: 0;
-}
-
-/* topdoc
-  name: Adjustments to meta-header
-  family: cf-typography
-  notes:
-    - "Changes to meta-header to be ported to cf-typography to allow better adjustments on mobile"
-    - "Changes to better control spacing when a category isn't set"
-  tags:
-    - cf-typography
-*/
-
-.m-meta-header {
-    overflow: auto;
-}
-
-.m-meta-header_right {
-    .respond-to-max(@bp-sm-max, {
-        margin-bottom: unit( (@grid_gutter-width / 2) / @base-font-size-px, em);
-    });
+.eyebrow {
+    .heading-5();
 }
 
 /* topdoc

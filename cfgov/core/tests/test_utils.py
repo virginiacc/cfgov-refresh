@@ -25,8 +25,8 @@ class ExtractAnswersTest(TestCase):
                                'questionid_first': 'some_answer',
                                'questionid_another': 'another_answer'})
         result = extract_answers_from_request(request)
-        assert sorted(result) == [('another', 'another_answer'),
-                                  ('first', 'some_answer')]
+        assert result == [('another', 'another_answer'),
+                          ('first', 'some_answer')]
 
 
 class TestNoMigrations(TestCase):
@@ -37,7 +37,7 @@ class TestNoMigrations(TestCase):
         self.assertTrue('random-string' in self.nomigrations)
 
     def test_getitem(self):
-        self.assertEqual(self.nomigrations['random-string'], 'nomigrations')
+        self.assertIsNone(self.nomigrations['random-string'])
 
 
 class FormatFileSizeTests(unittest.TestCase):

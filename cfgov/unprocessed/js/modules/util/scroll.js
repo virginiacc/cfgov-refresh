@@ -1,4 +1,4 @@
-const assign = require( './assign' ).assign;
+import { assign } from './assign';
 
 const _requestAnimationFrame = window.requestAnimationFrame ||
     window.webkitRequestAnimationFrame ||
@@ -72,6 +72,7 @@ function scrollTo( to, opts ) {
     const next =
       _easeInOutQuad( elapsed, startPosition, distance, duration );
     window.scroll( 0, next );
+
     if ( elapsed < duration ) {
       _requestAnimationFrame( scroll );
     } else if ( typeof opts.callback === 'function' ) {
@@ -81,6 +82,8 @@ function scrollTo( to, opts ) {
 
   if ( Math.abs( distance ) > 3 ) {
     _requestAnimationFrame( scroll );
+  } else if ( typeof opts.callback === 'function' ) {
+    opts.callback();
   }
 }
 
@@ -127,11 +130,10 @@ function elementInView( elem, strict ) {
   return elementBottom >= windowTop && elementTop <= windowBottom;
 }
 
-
-module.exports = {
-  elementInView: elementInView,
-  scrollIntoView: scrollIntoView,
-  scrollTo: scrollTo
-};
-
 window.scrollToElement = scrollTo;
+
+export {
+  elementInView,
+  scrollIntoView,
+  scrollTo
+};

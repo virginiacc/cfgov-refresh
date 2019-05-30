@@ -7,7 +7,6 @@ from django.template import Context, Template
 from django.test import TestCase
 
 from agreements import models
-from BeautifulSoup import BeautifulSoup
 from mock import patch
 
 
@@ -22,7 +21,7 @@ def agreement_factory(**kwargs):
     args = {
         'file_name': '',
         'size': 0,
-        'uri': 'http://example.com',
+        'uri': 'https://example.com',
         'description': '',
     }
 
@@ -133,13 +132,16 @@ class Views(TestCase):
 
         path = reverse('issuer_search', kwargs={'issuer_slug': issuer.slug})
         resp = self.client.get(path)
-        self.assertTrue('page=2' in resp.content)
-        self.assertFalse('page=1' in resp.content)
+        self.assertContains(resp, 'page=2')
+        self.assertNotContains(resp, 'page=1')
+        self.assertFalse(b'page=1' in resp.content)
 
         resp = self.client.get(path + '?page=2')
-        self.assertTrue('page=1' in resp.content)
-        self.assertFalse('page=2' in resp.content)
-        self.assertFalse('page=3' in resp.content)
+        self.assertContains(resp, 'page=1')
+        self.assertNotContains(resp, 'page=2')
+        self.assertNotContains(resp, 'page=3')
+        self.assertFalse(b'page=2' in resp.content)
+        self.assertFalse(b'page=3' in resp.content)
 
     @patch('agreements.views.render', return_value=HttpResponse())
     def test_issuer_paging_too_high(self, render):
@@ -153,12 +155,12 @@ class Views(TestCase):
 
         path = reverse('issuer_search', kwargs={'issuer_slug': issuer.slug})
         self.client.get(path + '?page=2')
-        object_ids2 = map(lambda o: o.id,
-                          render.call_args[0][2]['page'].object_list)
+        object_ids2 = list(map(lambda o: o.id,
+                               render.call_args[0][2]['page'].object_list))
 
         self.client.get(path + '?page=5555')
-        object_ids5555 = map(lambda o: o.id,
-                             render.call_args[0][2]['page'].object_list)
+        object_ids5555 = list(map(lambda o: o.id,
+                                  render.call_args[0][2]['page'].object_list))
 
         self.assertEqual(5, len(object_ids2))
         self.assertEqual(5, len(object_ids5555))
@@ -176,12 +178,12 @@ class Views(TestCase):
 
         path = reverse('issuer_search', kwargs={'issuer_slug': issuer.slug})
         self.client.get(path + '?page=1')
-        object_ids1 = map(lambda o: o.id,
-                          render.call_args[0][2]['page'].object_list)
+        object_ids1 = list(map(lambda o: o.id,
+                               render.call_args[0][2]['page'].object_list))
 
         self.client.get(path + '?page=abcd')
-        object_idsabcd = map(lambda o: o.id,
-                             render.call_args[0][2]['page'].object_list)
+        object_idsabcd = list(map(lambda o: o.id,
+                                  render.call_args[0][2]['page'].object_list))
         self.assertEqual(40, len(object_ids1))
         self.assertEqual(40, len(object_idsabcd))
         self.assertEqual(object_ids1, object_idsabcd)
@@ -225,11 +227,18 @@ class TemplateTags(TestCase):
             issuer = models.Issuer.objects.create(name=name, slug=name)
             models.Agreement.objects.create(issuer=issuer, size=1234)
 
-        selected = models.Issuer.objects.order_by('?').first()
-
         t = Template("{% load agreements_extras %}" +
                      "{% issuer_select id %}")
-        soup = BeautifulSoup(t.render(Context({'id': selected.slug})))
-        option = soup.findAll('option', selected='selected')
-        self.assertTrue(len(option) == 1)
-        self.assertTrue(selected.name in option[0])
+        html = t.render(Context({'id': 'BBB'}))
+        self.assertHTMLEqual(html, """
+<select
+    data-placeholder="Choose an issuer"
+    class="chzn-select"
+    tabindex="2"
+    id="issuer_select"
+>
+    <option value="AAA">AAA</option>
+    <option value="BBB" selected>BBB</option>
+    <option value="CCC">CCC</option>
+</select>
+        """)

@@ -2,13 +2,13 @@
    Base Video Player Class
    ========================================================================== */
 
+import { assign } from './util/assign';
+import { noopFunct } from './util/standard-type';
+import * as jsLoader from './util/js-loader';
 
-const _assign = require( './util/assign' ).assign;
-const _noopFunct = require( './util/standard-type' ).noopFunct;
-const _jsLoader = require( './util/js-loader' );
-const _dataSet = require( './util/data-set' ).dataSet;
+import ERROR_MESSAGES from '../config/error-messages-config';
 
-const DOM_INVALID = require( '../config/error-messages-config' ).DOM.INVALID;
+const DOM_INVALID = ERROR_MESSAGES.DOM.INVALID;
 
 const CLASSES = Object.freeze( {
   VIDEO_PLAYER_SELECTOR:     '.video-player',
@@ -34,14 +34,17 @@ let _this;
  *
  * @classdesc Base Video Player class.
  * @param {HTMLNode} element - The DOM element to use as the base element.
- * @param {object} options - attributes used to extend the video player
+ * @param {Object} options - attributes used to extend the video player
  */
 function VideoPlayer( element, options ) {
   _this = this;
   options = options || {};
   this.baseElement = _ensureElement( element, options.createIFrame );
-  this.iFrameProperties = _assign( _dataSet( this.baseElement ) ||
-    {}, this.iFrameProperties );
+  this.iFrameProperties = assign(
+    {},
+    this.baseElement.dataset,
+    this.iFrameProperties
+  );
 
   _setChildElements( this.childElements );
   _initEvents();
@@ -66,7 +69,7 @@ VideoPlayer.extend = function extend( attributes ) {
     return VideoPlayer.apply( this, arguments );
   }
   child.prototype = Object.create( VideoPlayer.prototype );
-  _assign( child.prototype, attributes );
+  assign( child.prototype, attributes );
   child.init = VideoPlayer.init;
 
   return child;
@@ -83,17 +86,23 @@ VideoPlayer.init = function init( selector ) {
   'not([class*="' + CLASSES.VIDEO_PLAYER_SELECTOR + '"__"])';
 
   // There should only be one video player on the page.
-  let videoPlayer;
   const videoPlayerElement = document.querySelector( selector );
-  if ( videoPlayerElement ) {
-    videoPlayer = new this( videoPlayerElement );
-  }
 
+  // Nothing to initialize
+  if ( !videoPlayerElement ) return;
+
+  const videoPlayer = new this( videoPlayerElement );
+
+  _attachIFrame();
+
+  /* eslint-disable consistent-return */
   return videoPlayer;
 };
 
 // Private Methods.
 
+// TODO Fix complexity issue
+/* eslint-disable complexity */
 /**
  * Function used to attach the video iframe.
  * @throws Will throw an error if no iframe element is found.
@@ -109,8 +118,9 @@ function _attachIFrame() {
     iFrameElement.classList.add( CLASSES.IFRAME_CLASS_NAME );
     iFrameElement.setAttribute( 'frameborder', 0 );
     _this.state.isIframeLoading = true;
-    iFrameElement.onload =
-      function oniFrameLoad() { _this.state.setIsIframeLoaded( true ); };
+    iFrameElement.onload = function onload() {
+      _this.state.setIsIframeLoaded( true );
+    };
     iFrameContainerElement.appendChild( iFrameElement );
   } else if ( _this.childElements.iframeContainer === null ) {
     throw new Error( 'No iframe container element found.' );
@@ -231,10 +241,10 @@ const API = {
      */
     function onScriptLoad() { _this.state.isScriptLoading = false; }
     this.state.isScriptLoading = true;
-    _jsLoader.loadScript( script || this.SCRIPT_API, callback || onScriptLoad );
+    jsLoader.loadScript( script || this.SCRIPT_API, callback || onScriptLoad );
   },
 
-  init: _noopFunct,
+  init: noopFunct,
 
   iFrameProperties: {
     allowfullscreen: 'true',
@@ -274,9 +284,6 @@ const API = {
    * Function used to play the video player.
    */
   play: function play( ) {
-    if ( _isIframeLoaded === false ) {
-      _attachIFrame();
-    }
     this.baseElement.classList.add( CLASSES.VIDEO_PLAYING_STATE );
     this.state.setIsVideoPlaying( true );
   },
@@ -290,7 +297,7 @@ const API = {
   }
 };
 
-_assign( VideoPlayer.prototype, API );
+assign( VideoPlayer.prototype, API );
 
 // Expose public methods.
-module.exports = VideoPlayer;
+export default VideoPlayer;

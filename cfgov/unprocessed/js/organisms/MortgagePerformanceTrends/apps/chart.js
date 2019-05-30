@@ -1,9 +1,11 @@
-const ccb = require( 'cfpb-chart-builder' );
-const actions = require( '../actions/chart' );
-const Store = require( '../stores/chart' );
-const utils = require( '../utils' );
+import * as ccb from 'cfpb-chart-builder';
+import actions from '../actions/chart';
+import LineChartStore from '../stores/chart';
+import utils from '../utils';
 
-const store = new Store( [ utils.thunkMiddleware, utils.loggerMiddleware ] );
+const store = new LineChartStore(
+  [ utils.thunkMiddleware, utils.loggerMiddleware ]
+);
 
 class MortgagePerformanceLineChart {
   constructor( { container } ) {
@@ -273,4 +275,4 @@ MortgagePerformanceLineChart.prototype.renderStates = function( prevState, state
   this.$state.appendChild( fragment );
 };
 
-module.exports = MortgagePerformanceLineChart;
+export default MortgagePerformanceLineChart;

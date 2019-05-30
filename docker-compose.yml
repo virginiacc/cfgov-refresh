@@ -1,53 +1,76 @@
-version: "3.3"
-
+version: "3.4"
+volumes:
+  postgres_data:
 services:
-    mysql:
-        image: vsamov/mysql-5.1.73
-        ports:
-            - "3306:3306"
-        environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: v1
-            MYSQL_USER: v1
-            MYSQL_PASSWORD: v1
-        volumes:
-            - "/var/lib/mysql"
     elasticsearch:
-        build: 
+        build:
             context: ./
             dockerfile: ./docker/elasticsearch/Dockerfile
         ports:
             - "9200:9200"
             - "9300:9300"
     postgres:
-            image: postgres:9.6
-            restart: always
-            environment:
-                    POSTGRES_USER: cfgov
-                    POSTGRES_PASSWORD: cfgov
-    python:
-        build: .
+        image: postgres:10.3
+        restart: always
+        volumes:
+          - postgres_data:/var/lib/postgresql/data/
+        environment:
+            POSTGRES_USER: cfpb
+            POSTGRES_PASSWORD: cfpb
+            POSTGRES_DB: cfgov
+    python2:
+        build: 
+            context: ./
+            dockerfile: ./Dockerfile
+        image: python
         ports:
             - "8000:8000"
         environment:
-            MYSQL_ROOT_PW: root
-            MYSQL_HOST: mysql
-            MYSQL_NAME: v1
-            MYSQL_USER: v1
-            MYSQL_PW: v1
             ES_HOST: elasticsearch
-            PG_DATABASE_URL: postgres://cfgov:cfgov@postgres/cfgov
         volumes:
-                - ./:/src/cfgov-refresh
-                - ./develop-apps:/src/develop-apps
-        entrypoint: 
-                - sh
-                - /src/cfgov-refresh/cfgov/entrypoint.sh
+            - ./:/src/cfgov-refresh
+            - ./develop-apps:/src/develop-apps
+        entrypoint:
+            - sh
+            - /src/cfgov-refresh/docker/python2/entrypoint.sh
         depends_on:
-                - mysql
-                - elasticsearch                
-                - postgres
+            - elasticsearch
+            - postgres
         working_dir: /src/cfgov-refresh
-        env_file: .python_env
+        stdin_open: true
+        tty: true
+    python3:
+        image: python
+        ports:
+            - "8333:8000"
+        environment:
+            ES_HOST: elasticsearch
+        volumes:
+            - ./:/src/cfgov-refresh
+            - ./develop-apps:/src/develop-apps
+        entrypoint:
+            - sh
+            - /src/cfgov-refresh/docker/python3/entrypoint.sh
+        depends_on:
+            - elasticsearch
+            - postgres
+        working_dir: /src/cfgov-refresh
+        stdin_open: true
+        tty: true
+    docs:
+        build:
+            context: ./
+            dockerfile: ./docker/docs/Dockerfile
+        ports:
+            - "8888:8888"
+        environment:
+            LANG: en_US.utf8
+            LC_ALL: en_US.utf8
+        volumes:
+            - ./:/src/cfgov-refresh
+        entrypoint:
+            - sh
+            - /src/cfgov-refresh/docker/docs/entrypoint.sh
+        working_dir: /src/cfgov-refresh
         stdin_open: true
         tty: true

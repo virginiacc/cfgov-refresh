@@ -1,13 +1,14 @@
+const fancyLog = require( 'fancy-log' );
 const gulp = require( 'gulp' );
-const gulpUtil = require( 'gulp-util' );
 const paths = require( '../../config/environment' ).paths;
 const spawn = require( 'child_process' ).spawn;
 
 /**
  * Generate JS scripts documentation.
+ * @returns {ChildProcess} A spawned process.
  */
 function docsScripts() {
-  spawn(
+  return spawn(
     paths.modules + '/.bin/jsdoc',
     [ paths.unprocessed + '/js',
       '--recurse',
@@ -15,14 +16,14 @@ function docsScripts() {
       './docs/scripts' ],
     { stdio: 'inherit' }
   ).once( 'close', function() {
-    gulpUtil.log( 'Scripts documentation generated!' );
+    fancyLog( 'Scripts documentation generated!' );
   } );
 }
 
 gulp.task( 'docs:scripts', docsScripts );
 
 gulp.task( 'docs',
-  [
+  gulp.parallel(
     'docs:scripts'
-  ]
+  )
 );

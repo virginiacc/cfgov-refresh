@@ -21,7 +21,7 @@
 @import (less) 'cf-tables.less';
 
 // Icon font path
-@cf-icon-path: '../fonts';
+@cf-icon-path: '/static/fonts';
 
 // Webfont variables
 // This is the path for self-hosted fonts.
@@ -47,9 +47,6 @@
 // CF Tables
 @import (less) "enhancements/tables.less";
 
-// CF Notifications
-@import (less) "enhancements/notifications.less";
-
 // CF ???
 @import (less) "enhancements/print.less";
 
@@ -58,7 +55,7 @@
 /* Base patterns
    ========================================================================== */
 
-@import (less) "forms.less";
+@import (less) "images.less";
 @import (less) "media.less";
 @import (less) "meta.less";
 @import (less) "misc.less";
@@ -79,13 +76,14 @@
 @import (less) "atoms/rule-break.less";
 @import (less) "atoms/overlay.less";
 @import (less) "atoms/partially-styled-link.less";
+@import (less) "atoms/tag.less";
+@import (less) "atoms/tagline.less";
 
 
 /* Molecule pieces
    ========================================================================== */
 
 @import (less) "molecules/autocomplete.less";
-@import (less) "molecules/big-checkbox.less";
 @import (less) "molecules/call-to-action.less";
 @import (less) "molecules/card.less";
 @import (less) "molecules/featured-menu-content.less";
@@ -99,7 +97,7 @@
 @import (less) "molecules/home-hero.less";
 @import (less) "molecules/info-unit.less";
 @import (less) "molecules/inset.less";
-@import (less) "molecules/multi-select.less";
+@import (less) "molecules/multiselect.less";
 @import (less) "molecules/nav-link.less";
 @import (less) "molecules/related-metadata.less";
 @import (less) "molecules/related-posts.less";
@@ -112,13 +110,8 @@
 @import (less) "organisms/chart.less";
 @import (less) "organisms/email-popup.less";
 @import (less) "organisms/email-signup.less";
-@import (less) "organisms/expandable.less";
-@import (less) "organisms/expandable-group.less";
-@import (less) "organisms/featured-content-module.less";
-@import (less) "organisms/filterable-list-controls.less";
 @import (less) "organisms/footer.less";
 @import (less) "organisms/form.less";
-@import (less) "organisms/form-input-group.less";
 @import (less) "organisms/full-width-text-group.less";
 @import (less) "organisms/header.less";
 @import (less) "organisms/info-unit-group.less";
@@ -129,11 +122,11 @@
 @import (less) "organisms/prefooter.less";
 @import (less) "organisms/read-more.less";
 @import (less) "organisms/reg-comment.less";
+@import (less) "organisms/resource-list.less";
 @import (less) "organisms/secondary-navigation.less";
 @import (less) "organisms/sidebar-breakout.less";
 @import (less) "organisms/sidebar-contact-info.less";
 @import (less) "organisms/sidebar-content.less";
-@import (less) "organisms/snippet-list.less";
 
 
 /* Template pieces
@@ -159,3 +152,9 @@
    ========================================================================== */
 
 @import (less) "print.less";
+
+
+/* Wagtail mitigation
+   ========================================================================== */
+
+@import (less) "rich-text.less";

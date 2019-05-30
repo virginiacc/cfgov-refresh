@@ -5,5 +5,8 @@ Disallow: /es/obtener-respuestas/*.imprimir.html
 Disallow: /external-site
 Disallow: /*?success
 Disallow: *form-id=*
+Disallow: /?page=
+Disallow: /hud-api-replace
+Disallow: /yourstory
 
-sitemap: http://www.consumerfinance.gov/sitemap.xml
+sitemap: https://www.consumerfinance.gov/sitemap.xml

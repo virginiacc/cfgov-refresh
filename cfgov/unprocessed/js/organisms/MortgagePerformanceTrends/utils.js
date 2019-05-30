@@ -1,10 +1,13 @@
-const ajax = require( 'xdr' );
+import ajax from 'xdr';
 
 const COUNTIES_URL = '/data-research/mortgages/api/v1/metadata/state_county_meta';
 const METROS_URL = '/data-research/mortgages/api/v1/metadata/state_msa_meta';
 const NON_METROS_URL = '/data-research/mortgages/api/v1/metadata/non_msa_fips';
 const STATES_URL = '/data-research/mortgages/api/v1/metadata/state_meta';
-let counties, metros, nonMetros, states;
+let counties;
+let metros;
+let nonMetros;
+let states;
 let globalZoomLevel = 10;
 
 const utils = {
@@ -257,7 +260,7 @@ const utils = {
    * takes a `howMuch` parameter to determine how much to zoom the map.
    * Values less than 1 zooms in. 0.5 zooms in to half the current view.
    * 2 zooms to twice the current view. If omitted, the zoom is reset.
-   * See http://api.highcharts.com/highmaps/Chart.mapZoom
+   * See https://api.highcharts.com/class-reference/Highcharts.Chart.html#mapZoom
    *
    * This function normalizes the map's zooming by keeping track of the current
    * zoom level and calculating a new one based on the requested amount of zoom.
@@ -431,4 +434,4 @@ const utils = {
   }
 };
 
-module.exports = utils;
+export default utils;

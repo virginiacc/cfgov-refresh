@@ -83,12 +83,13 @@
 {% macro event_venue(event, event_state) %}
     {% set state_prefix = ', ' if event.venue_city and event.venue_state else '' %}
     {% set city_prefix_state = event.venue_city ~ state_prefix ~ event.venue_state %}
+
     <section class="event-venue">
         <div class="event-venue_details">
             <header class="event-venue_header">
                 {% if ( event_state == 'present' ) %}
                 <button class="a-btn event-venue_live-btn">
-                    <span class="cf-icon cf-icon-livestream"></span>
+                    {{ svg_icon('broadcast') }}
                     <span class="event-venue_live-btn_text">Live</span>
                 </button>
                 {% endif %}
@@ -144,14 +145,17 @@
                         'url': '',
                     },
                     'video': {
-                        'player': 'ustream',
                         'id':     video_id,
                         'url':    event.live_stream_url
                     }
                 }) }}
+            {% elif event_state == 'present' and request.path == '/about-us/events/town-hall-baton-rouge-la-preventing-elder-financial-exploitation/' %}
+                <iframe alt="Preventing elder financial exploitation."
+                        style="display: block; width: 100%; min-height: 470px; border: none;" src="https://mediasite.yorkcast.com/webcast/Play/49307158a39a454d913b39a9469428cc1d?autostart=true"></iframe>
             {% else %}
               <img src="{{ event.location_image_url(size='640x320') }}"
-                   alt="Google Maps image of {{ event.venue_name }}">
+                   alt="Map image of
+                        {{ event.venue_city }}{{ ', ' ~ event.venue_state if event.venue_state else '' }}">
             {% endif %}
             </figure>
         </footer>
@@ -234,31 +238,6 @@
         </tbody>
     </table>
   </div>
-{% endmacro %}
-
-{# ==========================================================================
-
-   event_filter_args()
-
-   ==========================================================================
-
-   Description:
-
-   Create an event agenda table when given
-
-   post: A post from a query result.
-
-   ========================================================================== #}
-
-{% macro event_filter_args(filters) %}
-{%- for filter in filters -%}
-   {%- set selected_filters = selected_filters_for_field(filter) -%}
-   {%- for value in selected_filters -%}
-       {%- if value -%}
-          &{{ filter }}={{ value }}
-       {%- endif -%}
-   {%- endfor -%}
-{%- endfor -%}
 {% endmacro %}
 
 {# ==========================================================================

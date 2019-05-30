@@ -5,25 +5,27 @@ limited_categories = [
     ('speech-bubble', 'Blog'),
     ('newspaper', 'Newsroom'),
     ('document', 'Report'),
+    ('pencil', "Director's notebook"),
     ('date', 'Events'),
     ('microphone', 'Speech'),
-    ('bullhorn', 'Press Release'),
-    ('contract', 'Op-Ed'),
+    ('bullhorn', 'Press release'),
+    ('contract', 'Op-ed'),
     ('double-quote', 'Testimony'),
 ]
 
 related_posts_categories = [
     ('Blog', (
         ('At the CFPB', 'At the CFPB'),
-        ('Policy &amp; Compliance', 'Policy & Compliance'),
-        ('Data, Research &amp; Reports', 'Data, research & reports'),
+        ('Policy &amp; Compliance', 'Policy and compliance'),
+        ('Data, Research &amp; Reports', 'Data, research, and reports'),
         ('Info for Consumers', 'Info for consumers'),
     )),
     ('Newsroom', (
-        ('Op-Ed', 'Op-Ed'),
-        ('Press Release', 'Press Release'),
+        ('Op-Ed', 'Op-ed'),
+        ('Press Release', 'Press release'),
         ('Speech', 'Speech'),
         ('Testimony', 'Testimony'),
+        ("Director's notebook", "Director's notebook"),
     )),
 ]
 
@@ -32,8 +34,9 @@ page_types = [
     ('administrative-adjudication', 'Administrative adjudication'),
     ('amicus-brief', 'Amicus Brief'),
     ('blog', 'Blog'),
+    ('consumer-reporting', 'Consumer Reporting Companies'),
     ('enforcement', 'Enforcement Action'),
-    ('final-rule', 'Final Rule'),
+    ('final-rule', 'Final rule'),
     ('foia-freq-req-record', 'FOIA Frequently Requested Record'),
     ('impl-resource', 'Implementation Resource'),
     ('leadership-calendar', 'Leadership Calendar'),
@@ -43,6 +46,7 @@ page_types = [
     ('rule-under-dev', 'Rule Under Development'),
     ('story', 'Story'),
     ('ask', 'Ask CFPB'),
+    ('cfpb-researchers', 'CFPB Researchers'),
 ]
 
 fcm_types = [
@@ -67,18 +71,31 @@ categories = [
     )),
     ('Blog', (
         ('at-the-cfpb', 'At the CFPB'),
-        ('policy_compliance', 'Policy & Compliance'),
-        ('data-research-reports', 'Data, research & reports'),
+        ('policy_compliance', 'Policy and compliance'),
+        ('data-research-reports', 'Data, research, and reports'),
         ('info-for-consumers', 'Info for consumers'),
+    )),
+    ('Consumer Reporting Companies', (
+        ('nationwide', 'Nationwide'),
+        ('employment-screening', 'Employment screening'),
+        ('tenant-screening', 'Tenant screening'),
+        ('check-bank-screening', 'Check and bank screening'),
+        ('personal-property-insurance', 'Personal property insurance'),
+        ('medical', 'Medical'),
+        ('low-income-and-subprime', 'Low-income and subprime'),
+        ('supplementary-reports', 'Supplementary reports'),
+        ('utilities', 'Utilities'),
+        ('retail', 'Retail'),
+        ('gaming', 'Gaming'),
     )),
     ('Enforcement Action', (
         ('fed-district-case', 'Federal district court case'),
         ('administrative-adjudication-2', 'Administrative adjudication'),
         ('stipulation-and-consent-order-2', 'Stipulation and consent order'),
     )),
-    ('Final Rule', (
-        ('interim-final-rule', 'Interim Final Rule'),
-        ('final-rule', 'Final Rule'),
+    ('Final rule', (
+        ('interim-final-rule', 'Interim final rule'),
+        ('final-rule', 'Final rule'),
     )),
     ('FOIA Frequently Requested Record', (
         ('report', 'Report'),
@@ -90,32 +107,33 @@ categories = [
         ('official-guidance', 'Official guidance'),
     )),
     ('Newsroom', (
-        ('op-ed', 'Op-Ed'),
-        ('press-release', 'Press Release'),
+        ('directors-notebook', "Director's notebook"),
+        ('op-ed', 'Op-ed'),
+        ('press-release', 'Press release'),
         ('speech', 'Speech'),
         ('testimony', 'Testimony'),
     )),
     ('Notice and Opportunity for Comment', (
-        ('notice-proposed-rule', 'Advanced Notice of Proposed Rulemaking'),
-        ('proposed-rule', 'Proposed Rule'),
-        ('interim-final-rule-2', 'Interim Final Rule'),
-        ('request-comment-info', 'Request for Comment or Information'),
-        ('proposed-policy', 'Proposed Policy'),
-        ('intent-preempt-determ', 'Intent to make Preemption Determination'),
-        ('info-collect-activity', 'Information Collection Activities'),
+        ('notice-proposed-rule', 'Advance notice of proposed rulemaking'),
+        ('proposed-rule', 'Proposed rule'),
+        ('interim-final-rule-2', 'Interim final rule'),
+        ('request-comment-info', 'Request for comment or information'),
+        ('proposed-policy', 'Proposed policy'),
+        ('intent-preempt-determ', 'Intent to make preemption determination'),
+        ('info-collect-activity', 'Information collection activities'),
         ('notice-privacy-act', 'Notice related to Privacy Act'),
     )),
     ('Research Report', (
-        ('consumer-complaint', 'Consumer Complaint'),
+        ('consumer-complaint', 'Consumer complaint'),
         ('super-highlight', 'Supervisory Highlights'),
-        ('data-point', 'Data Point'),
+        ('data-point', 'Data point'),
         ('industry-markets', 'Industry and markets'),
         ('consumer-edu-empower', 'Consumer education and empowerment'),
         ('to-congress', 'To Congress'),
     )),
-    ('Rule under development', (
-        ('notice-proposed-rule-2', 'Advanced Notice of Proposed Rulemaking'),
-        ('proposed-rule-2', 'Proposed Rule'),
+    ('Rule Under Development', (
+        ('notice-proposed-rule-2', 'Advance notice of proposed rulemaking'),
+        ('proposed-rule-2', 'Proposed rule'),
     )),
     ('Story', (
         ('auto-loans', 'Auto loans'),
@@ -178,8 +196,9 @@ def page_type_choices():
     new_choices = [
         ('Recent updates', (
             ('blog', 'Blog'),
-            ('op-ed', 'Op-Ed'),
-            ('press-release', 'Press Release'),
+            ('directors-notebook', "Director's notebook"),
+            ('op-ed', 'Op-ed'),
+            ('press-release', 'Press release'),
             ('research-reports', 'Report'),
             ('speech', 'Speech'),
             ('testimony', 'Testimony'))),
@@ -198,9 +217,9 @@ def page_type_choices():
             ('raj-date', 'Raj Date'),
             ('elizabeth-warren', 'Elizabeth Warren'))),
         ('Newsroom', (
-            ('blog', 'Blog'),
-            ('op-ed', 'Op-Ed'),
-            ('press-release', 'Press Release'),
+            ('op-ed', 'Op-ed'),
+            ('press-release', 'Press release'),
+            ('directors-notebook', "Director's notebook"),
             ('speech', 'Speech'),
             ('testimony', 'Testimony'))),
     ]
@@ -240,6 +259,11 @@ def is_blog(page):
             if category.name == choice[0]:
                 return True
     if 'Blog' in page.specific_class.__name__:
+        return True
+
+
+def is_event(page):
+    if 'Event' in page.specific_class.__name__:
         return True
 
 

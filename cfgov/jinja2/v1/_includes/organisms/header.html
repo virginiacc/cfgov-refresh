@@ -11,41 +11,46 @@
    show_banner: Whether the global banner molecule is included.
                 Default is true.
 
+   language:    The page's language value (used to display different
+                information on Spanish pages). Defaults to English.
+
    ========================================================================== #}
 
-{% macro render( show_banner=false ) %}
+{% macro render( show_banner=false, language='en' ) %}
 
-<header class="o-header"
-        role="banner">
+<header class="o-header">
 
     {% if flag_enabled('BETA_NOTICE', request) and show_banner %}
+    {% import 'molecules/notification.html' as notification with context %}
     <div class="m-global-banner">
       <div class="wrapper
                   wrapper__match-content">
-            <div class="m-notification
-                        m-notification__visible
-                        m-notification__warning
-                        wrapper
-                        wrapper__match-content">
-                <span class="m-notification_icon cf-icon"></span>
-                <div class="m-notification_content">
-                    <div class="h4 m-notification_message">
-                        This beta site is a work in progress.
-                    </div>
-                    <p class="h4 m-notification_explanation">
-                        We’re prototyping new designs.
-                        Things may not work as expected.
-                        Our regular site continues to be at
-                        <a href="http://www.consumerfinance.gov/">www.consumerfinance.gov</a>.
-                    </p>
-                </div>
-            </div>
+            {{ notification.render(
+                'warning',
+                true,
+                'This beta site is a work in progress.',
+                'We’re prototyping new designs. Things may not work as expected.
+                Our regular site continues to be at
+                <a href="https://www.consumerfinance.gov/">www.consumerfinance.gov</a>.' | safe
+            ) }}
         </div>
     </div>
     {% endif %}
 
+    {% if flag_enabled('HMDA_OUTAGE', request) %}
+        {{ hmda_outage_banner(request) }}
+    {% endif %}
+
+    {% if flag_enabled('COMPLAINT_INTAKE_TECHNICAL_ISSUES', request) %}
+        {{ complaint_issue_banner(request) }}
+    {% endif %}
+
+    {% if flag_enabled('COMPLAINT_INTAKE_MAINTENANCE', request) %}
+        {{ complaint_maintenance_banner(request) }}
+    {% endif %}
+
     {% import 'molecules/global-eyebrow.html' as global_eyebrow with context %}
-    {{ global_eyebrow.render( true ) }}
+    {{ global_eyebrow.render( true, language ) }}
 
     <div class="o-header_content no-js">
 
@@ -53,8 +58,24 @@
             {% import 'molecules/global-header-cta.html' as global_header_cta with context %}
             {{ global_header_cta.render( true ) }}
 
-            {% include 'molecules/global-search.html' with context %}
+            {% import 'molecules/global-search.html' as global_search with context %}
+            {{ global_search.render() }}
 
+            {% if language == 'es' %}
+            <a class="o-header_logo" href="/es/">
+                <img class="o-header_logo-img"
+                     src="{{ static('img/logo_es_286x50.png') }}"
+                     srcset="{{ static('img/logo_es_228x40.png') }} 228w,
+                             {{ static('img/logo_es_228x40@2x.png') }} 456w,
+                             {{ static('img/logo_es_228x40@3x.png') }} 684w,
+                             {{ static('img/logo_es_228x40@4x.png') }} 912w,
+                             {{ static('img/logo_es_286x50.png') }} 286w,
+                             {{ static('img/logo_es_286x50@2x.png') }} 572w"
+                     sizes="(max-width: 900px) 228px,
+                            286px"
+                     alt="Oficina para la Protección Financiera del Consumidor">
+            </a>
+            {% else %}
             <a class="o-header_logo" href="/">
                 <img class="o-header_logo-img"
                      src="{{ static('img/logo_237x50.png') }}"
@@ -68,14 +89,23 @@
                             237px"
                      alt="Consumer Financial Protection Bureau">
             </a>
+            {% endif %}
 
             {% block primary_nav %}
-                {% include 'organisms/mega-menu.html' with context %}
+                {% from 'organisms/mega-menu.html' import mega_menu with context %}
+                {% if language == 'es' %}
+                    {% import '_vars-mega-menu-spanish.html' as vars with context %}
+                    {{ mega_menu(vars.menu_items) }}
+                {% else %}
+                    {% cache 'mega_menu', 'default_fragment_cache' %}
+                        {{ mega_menu(get_menu_items(request)) }}
+                    {% endcache %}
+                {% endif %}
             {% endblock primary_nav %}
         </div>
 
     </div>
-    <!--[if gt IE 8]><!-->
+    <!--[if gt IE 9]><!-->
       {#
         TODO: scope no-js to individual molecules/organisms.
         This is a hack to fix no-js on the on-demand header,

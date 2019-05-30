@@ -1,9 +1,8 @@
 [run]
 omit = 
     *wsgi.py
-    *admin*
+    */admin/*
     */migrations/*
-    *templatetags/*
     */site-packages*
     */python2.7/*
     *setup.py

@@ -3,6 +3,7 @@ from wagtail.wagtailadmin.edit_handlers import (
 )
 from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailcore.models import PageManager
+from wagtail.wagtailsearch import index
 
 from v1 import blocks as v1_blocks
 from v1.atomic_elements import molecules, organisms
@@ -17,10 +18,6 @@ class LandingPage(CFGOVPage):
 
     content = StreamField([
         ('info_unit_group', organisms.InfoUnitGroup()),
-        ('image_text_25_75_group', organisms.ImageText2575Group()),
-        ('image_text_50_50_group', organisms.ImageText5050Group()),
-        ('half_width_link_blob_group', organisms.HalfWidthLinkBlobGroup()),
-        ('third_width_link_blob_group', organisms.ThirdWidthLinkBlobGroup()),
         ('well', organisms.Well()),
         ('feedback', v1_blocks.Feedback()),
     ], blank=True)
@@ -41,3 +38,8 @@ class LandingPage(CFGOVPage):
     template = 'landing-page/index.html'
 
     objects = PageManager()
+
+    search_fields = CFGOVPage.search_fields + [
+        index.SearchField('content'),
+        index.SearchField('header')
+    ]

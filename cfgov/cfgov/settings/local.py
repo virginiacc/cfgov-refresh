@@ -1,7 +1,8 @@
+import warnings
+
 from unipath import DIRS
 
 from .base import *
-from .database_mixin import *
 
 
 DEBUG = True
@@ -22,7 +23,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
         }
     },
@@ -35,27 +36,37 @@ LOGGING = {
     }
 }
 
+# Log database queries.
+if os.environ.get('ENABLE_SQL_LOGGING'):
+    LOGGING['loggers']['django.db.backends'] = {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+        'propagate': False,
+    }
+
 # Django Debug Toolbar
 if os.environ.get('ENABLE_DEBUG_TOOLBAR'):
     INSTALLED_APPS += ('debug_toolbar',)
 
-    INTERNAL_IPS = ('127.0.0.1',)
     MIDDLEWARE_CLASSES += ('debug_toolbar.middleware.DebugToolbarMiddleware',)
 
     DEBUG_TOOLBAR_CONFIG = {
         'SHOW_COLLAPSED': True,
+        'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
     }
 
 
 MIDDLEWARE_CLASSES += CSP_MIDDLEWARE_CLASSES
 
 # Disable caching when working locally.
-CACHES = {
+CACHES.update({
     k: {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         'TIMEOUT': 0,
-    } for k in ('default', 'eregs_longterm_cache', 'api_cache', 'post_preview')
-}
+    } for k in (
+        'default', 'post_preview'
+    )
+})
 
 # Optionally enable cache for post_preview
 if os.environ.get('ENABLE_POST_PREVIEW_CACHE'):
@@ -64,3 +75,8 @@ if os.environ.get('ENABLE_POST_PREVIEW_CACHE'):
         'LOCATION': 'post_preview_cache',
         'TIMEOUT': None,
     }
+
+# Use a mock GovDelivery API instead of the real thing,
+# unless the GOVDELIVERY_BASE_URL environment variable is set.
+if not os.environ.get('GOVDELIVERY_BASE_URL'):
+    GOVDELIVERY_API = 'core.govdelivery.LoggingMockGovDelivery'

@@ -3,10 +3,9 @@
    Various utility functions to check if a field contains a valid value
    ========================================================================== */
 
-
 // Required Modules
-const ERROR_MESSAGES = require( '../../config/error-messages-config' );
-const typeCheckers = require( '../../modules/util/type-checkers' );
+import ERROR_MESSAGES from '../../config/error-messages-config';
+import * as typeCheckers from '../../modules/util/type-checkers';
 
 /* TODO: Update all the validators to return both passed and failed states
    instead of returning an empty object if the value passed */
@@ -21,9 +20,23 @@ const typeCheckers = require( '../../modules/util/type-checkers' );
  */
 function date( field, currentStatus ) {
   const status = currentStatus || {};
-  const dateRegex =
-    /^\d{2}$|^\d{4}$|^\d{2}\/(?:\d{4}|\d{2})$|^\d{2}\/\d{2}\/\d{4}$/;
-  if ( field.value && dateRegex.test( field.value ) === false ) {
+
+  /* Date regexes match the date patterns that are
+     allowed in cfgov/v1/forms.py FilterableDateField */
+
+  // https://regex101.com/r/M0ipdX/1
+  const yearRegex = /^\d{4}$/;
+  // https://regex101.com/r/PEa2se/1
+  const monthYearRegex = /^(?:\d{1}|\d{2})(?:\-|\/)(?:\d{4}|\d{2})$/;
+  // https://regex101.com/r/1SGTLF/1
+  const dayMonthYearRegex =
+    /^(?:\d{1}|\d{2})(?:\-|\/)(?:\d{1}|\d{2})(?:\-|\/)(?:\d{4}|\d{2})$/;
+
+  const inputIsValid = yearRegex.test( field.value ) ||
+    monthYearRegex.test( field.value ) ||
+    dayMonthYearRegex.test( field.value );
+
+  if ( field.value && !inputIsValid ) {
     status.msg = status.msg || '';
     status.msg += ERROR_MESSAGES.DATE.INVALID;
     status.date = false;
@@ -73,6 +86,7 @@ function email( field, currentStatus, options ) {
   return status;
 }
 
+// TODO: Rename this so it's clearer it's checking a required attribute
 /**
  * empty Determines if a required field contains a value.
  *
@@ -81,7 +95,6 @@ function email( field, currentStatus, options ) {
  * @returns {Object} An empty object if the field passes,
  *   otherwise an object with msg and type properties if it failed.
  */
-// TODO: Rename this so it's clearer it's checking a required attribute
 function empty( field, currentStatus ) {
   const status = currentStatus || {};
   const isRequired = field.getAttribute( 'required' ) !== null;
@@ -148,10 +161,10 @@ function _checkableInput( field, currentStatus, fieldset, type ) {
   return currentStatus;
 }
 
-module.exports = {
-  date:     date,
-  email:    email,
-  empty:    empty,
-  checkbox: checkbox,
-  radio:    radio
+export {
+  date,
+  email,
+  empty,
+  checkbox,
+  radio
 };

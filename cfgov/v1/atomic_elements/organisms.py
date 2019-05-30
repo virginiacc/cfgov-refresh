@@ -1,9 +1,12 @@
 import json
 from functools import partial
+from six import string_types as basestring
+from six.moves.urllib.parse import urlencode
 
 from django import forms
 from django.apps import apps
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.forms.utils import ErrorList
 from django.template.loader import render_to_string
 from django.utils.encoding import smart_text
@@ -13,13 +16,12 @@ from django.utils.safestring import mark_safe
 from wagtail.contrib.table_block.blocks import TableBlock
 from wagtail.utils.widgets import WidgetWithScript
 from wagtail.wagtailcore import blocks
+from wagtail.wagtailcore.models import Page
 from wagtail.wagtailcore.rich_text import DbWhitelister, expand_db_html
 from wagtail.wagtaildocs.blocks import DocumentChooserBlock
 from wagtail.wagtailimages import blocks as images_blocks
 from wagtail.wagtailsnippets.blocks import SnippetChooserBlock
-from wagtail.wagtailsnippets.models import get_snippet_models
 
-import requests
 from jinja2 import Markup
 
 import ask_cfpb
@@ -140,69 +142,6 @@ class InfoUnitGroup2575Only(InfoUnitGroup):
         label = 'Info unit group'
 
 
-class ImageText5050Group(blocks.StructBlock):
-    heading = blocks.CharBlock(icon='title', required=False)
-
-    link_image_and_heading = blocks.BooleanBlock(
-        default=False,
-        required=False,
-        help_text=('Check this to link all images and headings to the URL of '
-                   'the first link in their unit\'s list, if there is a link.')
-    )
-
-    sharing = blocks.StructBlock([
-        ('shareable', blocks.BooleanBlock(label='Include sharing links?',
-                                          help_text='If checked, share links '
-                                                    'will be included below '
-                                                    'the items.',
-                                          required=False)),
-        ('share_blurb', blocks.CharBlock(help_text='Sets the tweet text, '
-                                                   'email subject line, and '
-                                                   'LinkedIn post text.',
-                                         required=False)),
-    ])
-
-    image_texts = blocks.ListBlock(molecules.ImageText5050())
-
-    class Meta:
-        icon = 'image'
-        template = '_includes/organisms/image-text-50-50-group.html'
-
-
-class ImageText2575Group(blocks.StructBlock):
-    heading = blocks.CharBlock(icon='title', required=False)
-    link_image_and_heading = blocks.BooleanBlock(
-        default=False,
-        required=False,
-        help_text=('Check this to link all images and headings to the URL of '
-                   'the first link in their unit\'s list, if there is a link.')
-    )
-    image_texts = blocks.ListBlock(molecules.ImageText2575())
-
-    class Meta:
-        icon = 'image'
-        template = '_includes/organisms/image-text-25-75-group.html'
-
-
-class LinkBlobGroup(blocks.StructBlock):
-    heading = blocks.CharBlock(icon='title', required=False)
-    has_top_border = blocks.BooleanBlock(required=False)
-    has_bottom_border = blocks.BooleanBlock(required=False)
-    link_blobs = blocks.ListBlock(molecules.HalfWidthLinkBlob())
-
-
-class ThirdWidthLinkBlobGroup(LinkBlobGroup):
-    class Meta:
-        icon = 'link'
-        template = '_includes/organisms/third-width-link-blob-group.html'
-
-
-class HalfWidthLinkBlobGroup(LinkBlobGroup):
-    class Meta:
-        icon = 'link'
-        template = '_includes/organisms/half-width-link-blob-group.html'
-
-
 class PostPreviewSnapshot(blocks.StructBlock):
     limit = blocks.CharBlock(default='3', label='Limit',
                              help_text='How many posts do you want to show?')
@@ -211,16 +150,37 @@ class PostPreviewSnapshot(blocks.StructBlock):
 
     class Meta:
         icon = 'order'
+        template = '_includes/organisms/post-preview-snapshot.html'
 
 
 class EmailSignUp(blocks.StructBlock):
-    heading = blocks.CharBlock(required=False)
-    text = blocks.CharBlock(required=False)
-    gd_code = blocks.CharBlock(required=False)
-
-    form_field = blocks.ListBlock(molecules.FormFieldWithButton(),
-                                  icon='mail',
-                                  required=False)
+    heading = blocks.CharBlock(required=False, default='Stay informed')
+    default_heading = blocks.BooleanBlock(
+        required=False,
+        default=True,
+        label='Default heading style',
+        help_text=('If selected, heading will be styled as an H5 '
+                   'with green top rule. Deselect to style header as H3.')
+    )
+    text = blocks.CharBlock(
+        required=False,
+        help_text=('Write a sentence or two about what kinds of emails the '
+                   'user is signing up for, how frequently they will be sent, '
+                   'etc.')
+    )
+    gd_code = blocks.CharBlock(
+        required=False,
+        label='GovDelivery code',
+        help_text=('Code for the topic (i.e., mailing list) you want people '
+                   'who submit this form to subscribe to. Format: USCFPB_###')
+    )
+    disclaimer_page = blocks.PageChooserBlock(
+        required=False,
+        label='Privacy Act statement',
+        help_text=('Choose the page that the "See Privacy Act statement" link '
+                   'should go to. If in doubt, use "Generic Email Sign-Up '
+                   'Privacy Act Statement".')
+    )
 
     class Meta:
         icon = 'mail'
@@ -313,6 +273,115 @@ class RelatedPosts(blocks.StructBlock):
                    'posts can match any one topic tag.')
     )
 
+    alternate_view_more_url = blocks.CharBlock(
+        required=False,
+        label='Alternate "View more" URL',
+        help_text=('By default, the "View more" link will go to the Activity '
+                   'Log, filtered based on the above parameters. Enter a URL '
+                   'in this field to override that link destination.')
+    )
+
+    def get_context(self, value, parent_context=None):
+        context = super(RelatedPosts, self).get_context(
+            value,
+            parent_context=parent_context
+        )
+
+        page = context['page']
+        request = context['request']
+
+        context.update({
+            'posts': self.related_posts(page, value),
+            'view_more_url': (
+                value['alternate_view_more_url'] or
+                self.view_more_url(page, request)
+            ),
+        })
+
+        return context
+
+    @staticmethod
+    def related_posts(page, value):
+        from v1.models.learn_page import AbstractFilterPage
+
+        def tag_set(related_page):
+            return set([tag.pk for tag in related_page.tags.all()])
+
+        def match_all_topic_tags(queryset, page_tags):
+            """Return pages that share every one of the current page's tags."""
+            current_tag_set = set([tag.pk for tag in page_tags])
+            return [page for page in queryset
+                    if current_tag_set.issubset(tag_set(page))]
+
+        related_types = []
+        related_items = {}
+        if value.get('relate_posts'):
+            related_types.append('blog')
+        if value.get('relate_newsroom'):
+            related_types.append('newsroom')
+        if value.get('relate_events'):
+            related_types.append('events')
+        if not related_types:
+            return related_items
+
+        tags = page.tags.all()
+        and_filtering = value['and_filtering']
+        specific_categories = value['specific_categories']
+        limit = int(value['limit'])
+        queryset = AbstractFilterPage.objects.live().exclude(
+            id=page.id).order_by('-date_published').distinct()
+
+        for parent in related_types:  # blog, newsroom or events
+            # Include children of this slug that match at least 1 tag
+            children = Page.objects.child_of_q(Page.objects.get(slug=parent))
+            filters = children & Q(('tags__in', tags))
+
+            if parent == 'events':
+                # Include archived events matches
+                archive = Page.objects.get(slug='archive-past-events')
+                children = Page.objects.child_of_q(archive)
+                filters |= children & Q(('tags__in', tags))
+
+            if specific_categories:
+                # Filter by any additional categories specified
+                categories = ref.get_appropriate_categories(
+                    specific_categories=specific_categories,
+                    page_type=parent
+                )
+                if categories:
+                    filters &= Q(('categories__name__in', categories))
+
+            related_queryset = queryset.filter(filters)
+
+            if and_filtering:
+                # By default, we need to match at least one tag
+                # If specified in the admin, change this to match ALL tags
+                related_queryset = match_all_topic_tags(related_queryset, tags)
+
+            related_items[parent.title()] = related_queryset[:limit]
+
+        # Return items in the dictionary that have non-empty querysets
+        return {key: value for key, value in related_items.items() if value}
+
+    @staticmethod
+    def view_more_url(page, request):
+        """Generate a URL to see more pages like this one.
+        This method generates a link to the Activity Log page (which must
+        exist and must have a unique site-wide slug of "activity-log") with
+        filters set by the tags assigned to this page, like this:
+        /activity-log/?topics=foo&topics=bar&topics=baz
+        If for some reason a page with slug "activity-log" does not exist,
+        this method will raise Page.DoesNotExist.
+        """
+        activity_log = Page.objects.get(slug='activity-log')
+        url = activity_log.get_url(request)
+
+        tags = urlencode([('topics', tag) for tag in page.tags.slugs()])
+        if tags:
+            url += '?' + tags
+
+        return url
+
     class Meta:
         icon = 'link'
         template = '_includes/molecules/related-posts.html'
@@ -336,21 +405,6 @@ class SidebarContactInfo(MainContactInfo):
         template = '_includes/organisms/sidebar-contact-info.html'
 
 
-class Table(blocks.StructBlock):
-    headers = blocks.ListBlock(blocks.CharBlock())
-    rows = blocks.ListBlock(blocks.StreamBlock([
-        ('hyperlink', atoms.Hyperlink(required=False)),
-        ('text', blocks.CharBlock()),
-        ('text_blob', blocks.TextBlock()),
-        ('rich_text_blob', blocks.RichTextBlock()),
-    ]))
-
-    class Meta:
-        icon = None
-        template = '_includes/organisms/table.html'
-        label = ' '
-
-
 class BureauStructurePosition(blocks.StructBlock):
     office_name = blocks.CharBlock()
     lead = v1_blocks.PlaceholderCharBlock(placeholder="Name")
@@ -364,13 +418,22 @@ class BureauStructurePosition(blocks.StructBlock):
 
 class BureauStructureDivision(blocks.StructBlock):
     division = v1_blocks.PlaceholderCharBlock(label='Division')
-    division_lead = v1_blocks.PlaceholderCharBlock(placeholder="Name")
+    division_lead = v1_blocks.PlaceholderCharBlock(placeholder='Name')
     title = blocks.StructBlock([
         ('line_1', v1_blocks.PlaceholderCharBlock(required=False,
-                                                  placeholder="Title 1")),
+                                                  placeholder='Title 1')),
         ('line_2', v1_blocks.PlaceholderCharBlock(required=False,
-                                                  placeholder="Title 2"))
+                                                  placeholder='Title 2'))
     ])
+    division_lead_1 = v1_blocks.PlaceholderCharBlock(required=False,
+                                                     placeholder='Name',
+                                                     label='Division Lead')
+    title_1 = blocks.StructBlock([
+        ('line_1', v1_blocks.PlaceholderCharBlock(required=False,
+                                                  placeholder='Title 1')),
+        ('line_2', v1_blocks.PlaceholderCharBlock(required=False,
+                                                  placeholder='Title 2'))
+    ], label='Title')
     link_to_division_page = atoms.Hyperlink(required=False)
     offices = blocks.ListBlock(BureauStructurePosition(required=False))
 
@@ -471,7 +534,7 @@ class AtomicTableBlock(TableBlock):
         default = None
         icon = 'table'
         template = '_includes/organisms/table.html'
-        label = 'TableBlock'
+        label = 'Table'
 
     class Media:
         js = ['table.js']
@@ -660,16 +723,16 @@ class ModelList(ModelBlock):
 
 
 class FullWidthText(blocks.StreamBlock):
-    content_with_anchor = molecules.ContentWithAnchor()
     content = blocks.RichTextBlock(icon='edit')
-    media = images_blocks.ImageChooserBlock(icon='image')
+    content_with_anchor = molecules.ContentWithAnchor()
+    heading = v1_blocks.HeadingBlock(required=False)
+    image = molecules.ContentImage()
+    table_block = AtomicTableBlock(table_options={'renderer': 'html'})
     quote = molecules.Quote()
     cta = molecules.CallToAction()
     related_links = molecules.RelatedLinks()
-    table = Table(editable=False)
-    table_block = AtomicTableBlock(table_options={'renderer': 'html'})
-    image_inset = molecules.ImageInset()
     reusable_text = v1_blocks.ReusableTextChooserBlock('v1.ReusableText')
+    email_signup = EmailSignUp()
 
     class Meta:
         icon = 'edit'
@@ -748,16 +811,21 @@ class ItemIntroduction(blocks.StructBlock):
         classname = 'block__flush-top'
 
 
-# TODO: FilterControls/Filterable List should be updated to use same
-#       atomic name used on the frontend of FilterableListControls,
-#       or vice versa.
-class FilterControls(BaseExpandable):
-    form_type = blocks.ChoiceBlock(choices=[
-        ('filterable-list', 'Filterable List'),
-        ('pdf-generator', 'PDF Generator'),
-    ], default='filterable-list')
+class FilterableList(BaseExpandable):
     title = blocks.BooleanBlock(default=True, required=False,
                                 label='Filter Title')
+    no_posts_message = blocks.CharBlock(
+        required=False,
+        help_text=mark_safe(
+            'Message for the <a href="https://cfpb.github.io/'
+            'capital-framework/components/cf-notifications/'
+            '#recommended-notification-patterns">notification</a> '
+            'that will be displayed instead of filter controls '
+            'if there are no posts to filter.'))
+    no_posts_explanation = blocks.CharBlock(
+        required=False,
+        help_text='Additional explanation for the notification that '
+                  'will be displayed if there are no posts to filter.')
     post_date_description = blocks.CharBlock(default='Published')
     categories = blocks.StructBlock([
         ('filter_category',
@@ -785,11 +853,44 @@ class FilterControls(BaseExpandable):
     )
 
     class Meta:
-        label = 'Filter Controls'
+        label = 'Filterable List'
         icon = 'form'
+        template = '_includes/organisms/filterable-list.html'
 
     class Media:
-        js = ['filterable-list-controls.js']
+        js = ['filterable-list.js']
+
+    def get_context(self, value, parent_context=None):
+        context = super(FilterableList, self).get_context(
+            value,
+            parent_context=parent_context
+        )
+
+        # Different instances of FilterableList need to render their post
+        # previews differently depending on the page type they live on. By
+        # default post dates and tags are always shown.
+        context.update({
+            'show_post_dates': True,
+            'show_post_tags': True,
+        })
+
+        # Pull out the page type selected when the FilterableList was
+        # configured in the page editor, if one was specified. See the
+        # 'categories' block definition above. The page type choices are
+        # defined in v1.util.ref.page_types.
+        page_type = value['categories'].get('page_type')
+
+        # Pending a much-needed refactor of that code, this logic is being
+        # placed here to keep FilterableList logic in one place. It would be
+        # better if this kind of configuration lived on custom Page models.
+        page_type_overrides = {
+            'cfpb-researchers': {'show_post_dates': False},
+            'consumer-reporting': {'show_post_dates': False},
+            'foia-freq-req-record': {'show_post_tags': False},
+        }
+
+        context.update(page_type_overrides.get(page_type, {}))
+        return context
 
 
 class VideoPlayer(blocks.StructBlock):
@@ -816,52 +917,78 @@ class VideoPlayer(blocks.StructBlock):
         js = ['video-player.js']
 
 
-class HTMLBlock(blocks.StructBlock):
-    html_url = blocks.RegexBlock(
-        label='Source URL',
-        default='',
-        required=True,
-        regex=r'^https://(s3.amazonaws.com/)?files.consumerfinance.gov/.+$',
-        error_messages={
-            'required': 'The HTML URL field is required for rendering raw '
-                        'HTML from a remote source.',
-            'invalid': 'The URL is invalid or not allowed. ',
-        }
-    )
+class FeaturedContent(blocks.StructBlock):
+    heading = blocks.CharBlock(required=False)
+    body = blocks.RichTextBlock(required=False)
+    category = blocks.ChoiceBlock(choices=ref.fcm_types, required=False)
 
-    def render(self, value, context=None):
-        resp = requests.get(value['html_url'], timeout=5)
-        resp.raise_for_status()
-        return mark_safe(resp.content)
+    post = blocks.PageChooserBlock(required=False)
+    show_post_link = blocks.BooleanBlock(required=False,
+                                         label="Render post link?")
+    post_link_text = blocks.CharBlock(required=False)
+
+    image = atoms.ImageBasic(required=False)
+
+    links = blocks.ListBlock(atoms.Hyperlink(required=False),
+                             label='Additional Links')
+
+    video = blocks.StructBlock([
+        ('id', blocks.CharBlock(
+            required=False,
+            label='ID',
+            help_text='E.g., in "https://www.youtube.com/watch?v=en0Iq8II4fA",'
+                      ' the ID is everything after the "?v=".')),
+        ('url', blocks.CharBlock(
+            required=False,
+            label='URL',
+            help_text='You must use the embed URL, e.g., '
+                      'https://www.youtube.com/embed/'
+                      'JPTg8ZB3j5c?autoplay=1&enablejsapi=1')),
+        ('height', blocks.CharBlock(default='320', required=False)),
+        ('width', blocks.CharBlock(default='568', required=False)),
+    ])
 
     class Meta:
-        label = 'HTML Block'
-        icon = 'code'
+        template = '_includes/organisms/featured-content.html'
+        icon = 'doc-full-inverse'
+        label = 'Featured Content'
+        classname = 'block__flush'
+
+    class Media:
+        js = ['video-player.js']
 
 
 class ChartBlock(blocks.StructBlock):
     title = blocks.CharBlock(required=True)
     # todo: make radio buttons
-    chart_type = blocks.ChoiceBlock(choices=[
-        ('bar', 'Bar'),
-        ('line', 'Line'),
-        ('tile_map', 'Tile Map'),
-    ], required=True)
+    chart_type = blocks.ChoiceBlock(
+        choices=[
+            ('bar', 'Bar | % y-axis values'),
+            ('line', 'Line | millions/billions y-axis values'),
+            ('line-index', 'Line-Index | integer y-axis values'),
+            ('tile_map', 'Tile Map | grid-like USA map'),
+        ],
+        required=True
+    )
     color_scheme = blocks.ChoiceBlock(
         choices=[
-            ('green', 'Green'),
             ('blue', 'Blue'),
-            ('teal', 'Teal'),
+            ('gold', 'Gold'),
+            ('green', 'Green'),
             ('navy', 'Navy'),
+            ('neutral', 'Neutral'),
+            ('purple', 'Purple'),
+            ('teal', 'Teal'),
         ],
         required=False,
         help_text='Chart\'s color scheme. See '
-                  'https://github.com/cfpb/cfpb-chart-builder#configuration.')
+                  '"https://github.com/cfpb/cfpb-chart-builder'
+                  '#createchart-options-".')
     data_source = blocks.CharBlock(
         required=True,
         help_text='Location of the chart\'s data source relative to '
-                  '"http://files.consumerfinance.gov/data/". For example,'
-                  '"consumer-credit-trends/volume_data_Score_Level_AUT.csv".')
+                  '"https://files.consumerfinance.gov/data/". For example,'
+                  '"consumer-credit-trends/auto-loans/num_data_AUT.csv".')
     date_published = blocks.DateBlock(
         help_text='Automatically generated when CCT cron job runs'
     )
@@ -890,7 +1017,10 @@ class ChartBlock(blocks.StructBlock):
                   '"Data from the last six months are not final."')
     y_axis_label = blocks.CharBlock(
         required=False,
-        help_text='Custom y-axis label')
+        help_text='Custom y-axis label. '
+                  'NOTE: Line-Index chart y-axis '
+                  'is not overridable with this field!'
+    )
 
     class Meta:
         label = 'Chart Block'
@@ -937,39 +1067,20 @@ class MortgageMapBlock(MortgageChartBlock):
         js = ['mortgage-performance-trends.js']
 
 
-def get_snippet_type_choices():
-    return [
-        (
-            m.__module__ + '.' + m.__name__,
-            m._meta.verbose_name_plural.capitalize()
-        ) for m in get_snippet_models()
-    ]
-
-
-def get_snippet_field_choices():
-    return [
-        (
-            m._meta.verbose_name_plural.capitalize(),
-            getattr(m, 'snippet_list_field_choices', [])
-        ) for m in get_snippet_models()
-    ]
-
-
-class SnippetList(blocks.StructBlock):
+class ResourceList(blocks.StructBlock):
     heading = blocks.CharBlock(required=False)
     body = blocks.RichTextBlock(required=False)
     has_top_rule_line = blocks.BooleanBlock(
         default=False,
         required=False,
-        help_text=('Check this to add a horizontal rule line to top of '
-                   'snippet list.')
+        help_text='Check this to add a horizontal rule line above this block.'
     )
     image = atoms.ImageBasic(required=False)
     actions_column_width = blocks.ChoiceBlock(
         label='Width of "Actions" column',
         required=False,
         help_text='Choose the width in % that you wish to set '
-                  'the Actions column in a snippet list.',
+                  'the Actions column in a resource list.',
         choices=[
             ('70', '70%'),
             ('66', '66%'),
@@ -980,27 +1091,25 @@ class SnippetList(blocks.StructBlock):
             ('30', '30%'),
         ],
     )
-
-    snippet_type = blocks.ChoiceBlock(
-        choices=get_snippet_type_choices,
-        required=True
-    )
     show_thumbnails = blocks.BooleanBlock(
         required=False,
-        help_text='If selected, each snippet in the list will include a 150px-'
-                  'wide image from the snippet\'s thumbnail field.'
+        help_text='If selected, each resource in the list will include a '
+                  '150px-wide image from the resource\'s thumbnail field.'
     )
     actions = blocks.ListBlock(blocks.StructBlock([
         ('link_label', blocks.CharBlock(
             help_text='E.g., "Download" or "Order free prints"'
         )),
         ('snippet_field', blocks.ChoiceBlock(
-            choices=get_snippet_field_choices,
-            help_text='Corresponds to the available fields for the selected '
-                      'snippet type.'
+            choices=[
+                ('related_file', 'Related file'),
+                ('alternate_file', 'Alternate file'),
+                ('link', 'Link'),
+                ('alternate_link', 'Alternate link'),
+            ],
+            help_text='The field that the action link should point to'
         )),
     ]))
-
     tags = blocks.ListBlock(
         blocks.CharBlock(label='Tag'),
         help_text='Enter tag names to filter the snippets. For a snippet to '
@@ -1010,8 +1119,9 @@ class SnippetList(blocks.StructBlock):
     )
 
     class Meta:
+        label = 'Resource List'
         icon = 'table'
-        template = '_includes/organisms/snippet-list.html'
+        template = '_includes/organisms/resource-list.html'
 
 
 class AskCategoryCard(ModelList):
@@ -1060,6 +1170,38 @@ class DataSnapshot(blocks.StructBlock):
     year_over_year_change_text = blocks.CharBlock(
         max_length=100,
         help_text='Descriptive sentence, e.g. In year-over-year originations'
+    )
+
+    # Inquiry/Tightness Indices
+    inquiry_month = blocks.DateBlock(
+        required=False,
+        max_length=20,
+        help_text='Month of latest entry in dataset for inquiry data'
+    )
+    inquiry_year_over_year_change = blocks.CharBlock(
+        required=False,
+        max_length=20,
+        help_text='Percentage change, e.g. 5.6% increase'
+    )
+    inquiry_year_over_year_change_text = blocks.CharBlock(
+        required=False,
+        max_length=100,
+        help_text='Descriptive sentence, e.g. In year-over-year inquiries'
+    )
+    tightness_month = blocks.DateBlock(
+        required=False,
+        max_length=20,
+        help_text='Month of latest entry in dataset for credit tightness data'
+    )
+    tightness_year_over_year_change = blocks.CharBlock(
+        required=False,
+        max_length=20,
+        help_text='Percentage change, e.g. 5.6% increase'
+    )
+    tightness_year_over_year_change_text = blocks.CharBlock(
+        required=False,
+        max_length=100,
+        help_text='Descriptive sentence, e.g. In year-over-year credit tightness'  # noqa
     )
 
     # Select an image

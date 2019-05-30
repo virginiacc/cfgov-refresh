@@ -21,13 +21,16 @@ standalone() {
 dockerized() {
     ./frontend.sh $2
 
-    touch .python_env
-    source mac-virtualbox-init.sh
+    ENVVAR=.env
+    if [ ! -f $ENVVAR ]; then
+        echo 'Creating default environment variables...'
+        cp "$ENVVAR"_SAMPLE $ENVVAR
+    fi
 }
 
 # Execute requested (or all) functions.
 if [ "$1" == "docker" ]; then
     dockerized
 else
-    standalone
+    standalone $1
 fi

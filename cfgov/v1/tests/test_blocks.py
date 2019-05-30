@@ -1,10 +1,13 @@
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.utils.safestring import SafeText
 
+from wagtail.wagtailcore.models import Page
+
 import mock
 
-from v1.blocks import AbstractFormBlock, AnchorLink, PlaceholderCharBlock
+from v1.blocks import AbstractFormBlock, AnchorLink, Link, PlaceholderCharBlock
 
 
 class TestAbstractFormBlock(TestCase):
@@ -94,7 +97,7 @@ class TestPlaceholderBlock(TestCase):
     def test_render_no_placeholder_provided(self):
         block = PlaceholderCharBlock()
         html = block.render_form('Hello world!')
-        self.assertIn(
+        self.assertInHTML(
             (
                 '<input id="" name="" placeholder="" '
                 'type="text" value="Hello world!" />'
@@ -147,3 +150,21 @@ class TestPlaceholderBlock(TestCase):
         html = '<input id="foo" /><input id="bar" />'
         with self.assertRaises(ValueError):
             PlaceholderCharBlock.replace_placeholder(html, 'a')
+
+
+class TestLink(TestCase):
+    def test_link_with_external_url_validates(self):
+        block = Link()
+        value = block.to_python(
+            {'link_text': 'Link', 'external_link': '/path'}
+        )
+        try:
+            block.clean(value)
+        except ValidationError:
+            self.fail('Link with url should not fail validation')
+
+    def test_link_without_external_or_page_link_fails(self):
+        block = Link()
+        value = block.to_python({'link_text': 'Link'})
+        with self.assertRaises(ValidationError):
+            block.clean(value)
