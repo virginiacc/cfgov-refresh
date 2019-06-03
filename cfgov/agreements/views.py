@@ -67,7 +67,7 @@ def clean_ids(id_strings):
     for id_string in id_strings:
         try:
             pk = int(id_string)
-        except:
+        except ValueError:
             pass
         else:
             pks.append(pk)
