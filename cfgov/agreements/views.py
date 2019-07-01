@@ -11,138 +11,173 @@ from rest_framework.views import APIView
 
 from agreements import RESULTS_PER_PAGE
 from agreements.models import (
-    Agreement, CreditPlan, Issuer, PrepayPlan
+    Entity, Prepaid
+    # Agreement, CreditPlan, Issuer, PrepayPlan
 )
 
-MODEL_MAP = {
-    'issuer': Issuer,
-    'credit': CreditPlan,
-    'prepay': PrepayPlan
-}
+# MODEL_MAP = {
+#     'issuer': Issuer,
+#     'credit': CreditPlan,
+#     'prepay': PrepayPlan
+# }
 
 
-def index(request):
-    return render(request, 'agreements/index.html', {
-        'agreement_count': Agreement.objects.all().count(),
-        'pagetitle': 'Credit card agreements',
-    })
+# def index(request):
+#     return render(request, 'agreements/index.html', {
+#         'agreement_count': Agreement.objects.all().count(),
+#         'pagetitle': 'Credit card agreements',
+#     })
 
-
-def legacy_issuer_search(request, issuer_slug):
-    issuers = Issuer.objects.filter(slug=issuer_slug)
-
-    if not issuers.exists():
-        raise Http404
-
-    agreements = Agreement.objects.filter(issuer__in=issuers)
-
-    if agreements.exists():
-        issuer = agreements.latest('pk').issuer
-    else:
-        issuer = issuers.latest('pk')
-
-    pager = Paginator(
-        agreements.order_by('-posted', 'description'),
-        RESULTS_PER_PAGE
-    )
-
+def validate_page_number(request, paginator):
+    """
+    A utility for parsing a pagination request,
+    catching invalid page numbers and always returning
+    a valid page number, defaulting to 1.
+    """
+    raw_page = request.GET.get('page', 1)
     try:
-        page = pager.page(request.GET.get('page'))
-    except PageNotAnInteger:
-        page = pager.page(1)
-    except EmptyPage:
-        page = pager.page(pager.num_pages)
+        page_number = int(raw_page)
+    except ValueError:
+        page_number = 1
+    try:
+        paginator.page(page_number)
+    except InvalidPage:
+        page_number = 1
+    return page_number
 
-    return render(request, 'agreements/search.html', {
-        'page': page,
-        'issuer': issuer,
+
+def prepaid(request):
+    products = Prepaid.objects.all()
+    total_count = len(products)
+    paginator = Paginator(products, 20)
+    page_number = validate_page_number(request, paginator)
+    page = paginator.page(page_number)
+    return render(request, 'agreements/prepaid.html', {
+        'current_page': page_number,
+        'results': page,
+        'total_count': total_count,
+        'paginator': paginator,
+        'issuers': Entity.objects.all().order_by('name'),
+        'current_count': '',
+        'query': ''
     })
 
 
-def clean_ids(id_strings):
-    """Convert a list of id strings to ints"""
-    pks = []
-    if not id_strings:
-        return pks
-    for id_string in id_strings:
-        try:
-            pk = int(id_string)
-        except ValueError:
-            pass
-        else:
-            pks.append(pk)
-    return pks
+# def legacy_issuer_search(request, issuer_slug):
+#     issuers = Issuer.objects.filter(slug=issuer_slug)
+
+#     if not issuers.exists():
+#         raise Http404
+
+#     agreements = Agreement.objects.filter(issuer__in=issuers)
+
+#     if agreements.exists():
+#         issuer = agreements.latest('pk').issuer
+#     else:
+#         issuer = issuers.latest('pk')
+
+#     pager = Paginator(
+#         agreements.order_by('-posted', 'description'),
+#         RESULTS_PER_PAGE
+#     )
+
+#     try:
+#         page = pager.page(request.GET.get('page'))
+#     except PageNotAnInteger:
+#         page = pager.page(1)
+#     except EmptyPage:
+#         page = pager.page(pager.num_pages)
+
+#     return render(request, 'agreements/search.html', {
+#         'page': page,
+#         'issuer': issuer,
+#     })
 
 
-def clean_queries(query_strings):
-    """Disable brackets and disallow excessively long queries in list"""
-    q_strings = []
-    if not query_strings:
-        return q_strings
-    for q_string in query_strings:
-        q_strings.append(q_string.replace('>', '')[:50])
-    return q_strings
+# def clean_ids(id_strings):
+#     """Convert a list of id strings to ints"""
+#     pks = []
+#     if not id_strings:
+#         return pks
+#     for id_string in id_strings:
+#         try:
+#             pk = int(id_string)
+#         except ValueError:
+#             pass
+#         else:
+#             pks.append(pk)
+#     return pks
 
 
-def plan_search(request, model):
-    """Search collects credit or prepay plans by id and/or issuer query)"""
-    search_model = MODEL_MAP.get(model)
-    if not search_model:
-        raise HttpResponseBadRequest("Invalid model")
-    issuer_query_strings = (request.GET.getlist('q', ''))
-    issuer_queries = clean_queries(issuer_query_strings)
-    plan_id_strings = (request.GET.getlist('plan_id', ''))
-    plan_ids = clean_ids(plan_id_strings)
-    if not plan_ids and not issuer_queries:
-        qset = CreditPlan.objects.order_by('name')[:20]
-        results = [plan.payload for plan in qset]
-        return JsonResponse({'data': results})
-    if issuer_queries:
-        for query in issuer_queries:
-            for result in SearchQuerySet().models(Issuer).filter(
-                    content=query):
-                plan_ids += json.loads(result.plan_ids)
-
-    plans = search_model.objects.filter(pk__in=set(plan_ids))
-    results = [plan.payload for plan in plans]
-    return JsonResponse({'data': results})
+# def clean_queries(query_strings):
+#     """Disable brackets and disallow excessively long queries in list"""
+#     q_strings = []
+#     if not query_strings:
+#         return q_strings
+#     for q_string in query_strings:
+#         q_strings.append(q_string.replace('>', '')[:50])
+#     return q_strings
 
 
-def autocomplete(request, model):
-    """Return issuer or plan suggestions based on word fragments"""
-    search_model = MODEL_MAP.get(model)
-    if not search_model:
-        raise HttpResponseBadRequest("Invalid model")
-    term = request.GET.get('term', '').strip().replace('>', '')[:50]
-    if not term:
-        return JsonResponse([], safe=False)
-    sqs = SearchQuerySet().models(
-        search_model).autocomplete(autocomplete=term)
-    if model == 'issuer':
-        results = sorted([{'name': result.autocomplete,
-                           'pk': result.pk,
-                           'plan_ids': json.loads(result.plan_ids)}
-                         for result in sqs[:20]], key=lambda k: k['name'])
-    else:
-        results = sorted([{'name': result.autocomplete,
-                           'plan_id': result.pk}
-                          for result in sqs[:20]], key=lambda k: k['name'])
+# def plan_search(request, model):
+#     """Search collects credit or prepay plans by id and/or issuer query)"""
+#     search_model = MODEL_MAP.get(model)
+#     if not search_model:
+#         raise HttpResponseBadRequest("Invalid model")
+#     issuer_query_strings = (request.GET.getlist('q', ''))
+#     issuer_queries = clean_queries(issuer_query_strings)
+#     plan_id_strings = (request.GET.getlist('plan_id', ''))
+#     plan_ids = clean_ids(plan_id_strings)
+#     if not plan_ids and not issuer_queries:
+#         qset = CreditPlan.objects.order_by('name')[:20]
+#         results = [plan.payload for plan in qset]
+#         return JsonResponse({'data': results})
+#     if issuer_queries:
+#         for query in issuer_queries:
+#             for result in SearchQuerySet().models(Issuer).filter(
+#                     content=query):
+#                 plan_ids += json.loads(result.plan_ids)
 
-    return JsonResponse({'data': results})
+#     plans = search_model.objects.filter(pk__in=set(plan_ids))
+#     results = [plan.payload for plan in plans]
+#     return JsonResponse({'data': results})
 
 
-class CreditDataView(APIView):
-    """
-    API view for delivering credit objects by primary key
-    """
-    renderer_classes = (JSONRenderer,)
+# def autocomplete(request, model):
+#     """Return issuer or plan suggestions based on word fragments"""
+#     search_model = MODEL_MAP.get(model)
+#     if not search_model:
+#         raise HttpResponseBadRequest("Invalid model")
+#     term = request.GET.get('term', '').strip().replace('>', '')[:50]
+#     if not term:
+#         return JsonResponse([], safe=False)
+#     sqs = SearchQuerySet().models(
+#         search_model).autocomplete(autocomplete=term)
+#     if model == 'issuer':
+#         results = sorted([{'name': result.autocomplete,
+#                            'pk': result.pk,
+#                            'plan_ids': json.loads(result.plan_ids)}
+#                          for result in sqs[:20]], key=lambda k: k['name'])
+#     else:
+#         results = sorted([{'name': result.autocomplete,
+#                            'plan_id': result.pk}
+#                           for result in sqs[:20]], key=lambda k: k['name'])
 
-    def get(self, request, model, pk):
-        search_model = MODEL_MAP.get(model)
-        if not search_model or not pk:
-            raise HttpResponseBadRequest("Invalid model or key")
-        try:
-            result = search_model.objects.get(pk=pk)
-        except search_model.DoesNotExist:
-            raise Http404("No {} found.".format(model))
-        return Response(result.payload)
+#     return JsonResponse({'data': results})
+
+
+# class CreditDataView(APIView):
+#     """
+#     API view for delivering credit objects by primary key
+#     """
+#     renderer_classes = (JSONRenderer,)
+
+#     def get(self, request, model, pk):
+#         search_model = MODEL_MAP.get(model)
+#         if not search_model or not pk:
+#             raise HttpResponseBadRequest("Invalid model or key")
+#         try:
+#             result = search_model.objects.get(pk=pk)
+#         except search_model.DoesNotExist:
+#             raise Http404("No {} found.".format(model))
+#         return Response(result.payload)
