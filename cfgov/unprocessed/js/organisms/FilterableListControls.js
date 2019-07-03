@@ -52,24 +52,24 @@ function FilterableListControls( element ) {
     _expandable = _expandables[0];
 
     // If multiselects exist on the form, iterate over them.
-    // multiSelects.forEach( multiSelect => {
-    //   multiSelect.addEventListener( 'expandBegin', function refresh() {
-    //     window.setTimeout(
-    //       _expandable.transition.expand.bind( _expandable.transition ),
-    //       250
-    //     );
-    //   } );
+    multiSelects.forEach( multiSelect => {
+      multiSelect.addEventListener( 'expandBegin', function refresh() {
+        window.setTimeout(
+          _expandable.transition.expand.bind( _expandable.transition ),
+          250
+        );
+      } );
 
-    //   multiSelect.addEventListener( 'expandEnd', function refresh() {
-    //     window.setTimeout(
-    //       _expandable.transition.expand.bind( _expandable.transition ),
-    //       250
-    //     );
-    //   } );
-    // } );
+      multiSelect.addEventListener( 'expandEnd', function refresh() {
+        window.setTimeout(
+          _expandable.transition.expand.bind( _expandable.transition ),
+          250
+        );
+      } );
+    } );
 
     _formModel.init();
-    // _initAnalyticsEvents.bind( this )();
+    _initAnalyticsEvents.bind( this )();
 
     return this;
   }

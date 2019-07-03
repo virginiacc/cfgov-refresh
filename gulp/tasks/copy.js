@@ -34,6 +34,12 @@ gulp.task( 'copy:icons:r3k', () => {
   return _genericCopy( icons.src, iconsR3K.dest );
 } );
 
+gulp.task( 'copy:icons:agreements', () => {
+  const icons = configCopy.icons;
+  const iconsAgreements = configCopy.iconsAgreements;
+  return _genericCopy( icons.src, iconsAgreements.dest );
+} );
+
 // TODO: Remove when icon font is entirely deprecated.
 gulp.task( 'copy:icons:old', () => {
   const icons = configCopy.iconsOld;
@@ -55,7 +61,8 @@ gulp.task( 'copy:icons',
   gulp.parallel(
     'copy:icons:main',
     'copy:icons:oah',
-    'copy:icons:r3k'
+    'copy:icons:r3k',
+    'copy:icons:agreements'
   )
 );
 

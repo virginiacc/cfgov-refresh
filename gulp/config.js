@@ -103,6 +103,9 @@ module.exports = {
     iconsR3K: {
       dest: paths.processed + '/apps/regulations3k/icons/'
     },
+    iconsAgreements: {
+      dest: paths.processed + '/apps/agreements/icons/'
+    },
     // TODO: Remove when icon font is entirely deprecated.
     iconsOld: {
       src:  paths.modules + '/cf-icons/src/fonts/*',

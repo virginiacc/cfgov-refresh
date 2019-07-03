@@ -2,7 +2,7 @@
 
 <article class="results_item">
     <h2>
-      <a href="#">{{ result.product_name }}</a>
+      <a href="##">{{ result.product_name }}</a>
     </h2>
     <div class="content-l">
         <div class="content-l_col content-l_col-1-2">
@@ -14,7 +14,7 @@
 		    	<dt>Program manager</dt>
 		    	<dd>{{ result.program_manager if result.program_manager else 'No information provided'}}</dd>
 		    	<dt>Other relevant parties</dt>
-		    	<dd>{{ result.other_relevant_parties | truncate(75) if result.other_relevant_parties else 'No information provided'}}</dd>
+		    	<dd>{{ result.other_relevant_parties | truncate(75) if result.other_relevant_parties else 'No information provided' }}</dd>
 		    	<dt>Status</dt>
 		    	<dd>{{ result.status }}</dd>
 		    </dl>

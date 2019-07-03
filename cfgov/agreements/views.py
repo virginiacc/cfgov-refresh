@@ -47,7 +47,7 @@ def validate_page_number(request, paginator):
 
 
 def prepaid(request):
-    products = Prepaid.objects.all()
+    products = Prepaid.objects.exclude(issuer_name__contains='**')
     total_count = len(products)
     paginator = Paginator(products, 20)
     page_number = validate_page_number(request, paginator)
@@ -57,7 +57,7 @@ def prepaid(request):
         'results': page,
         'total_count': total_count,
         'paginator': paginator,
-        'issuers': Entity.objects.all().order_by('name'),
+        'issuers': Entity.objects.exclude(name__contains='**').order_by('name'),
         'current_count': '',
         'query': ''
     })

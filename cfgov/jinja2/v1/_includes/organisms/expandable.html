@@ -62,7 +62,9 @@
             </span>
         </span>
     </button>
-
+    {% if value.paragraph %}
+    <p class="u-mb0"> {{ value.paragraph }} </p>
+    {% endif %}
     <div class="o-expandable_content
                 {{ 'o-expandable_content__onload-open'
                     if value.is_expanded else '' }}">
