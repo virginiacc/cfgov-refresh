@@ -15,7 +15,7 @@
                     'label': 'Federal Pell Grant',
                     'id': 'grants__pell',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="grant_pell"'
+                    'data_attribute': 'data-awarded-funding="pell_grant"'
                 })
             }}
             {{
@@ -23,7 +23,7 @@
                     'label': 'Federal SEOG grant',
                     'id': 'grants__seog',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="grant_seog"'
+                    'data_attribute': 'data-awarded-funding="seog_grant"'
                 })
             }}
             {{
@@ -31,7 +31,7 @@
                     'label': 'Other federal grant(s)',
                     'id': 'grants__otherFederal',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="grant_otherFederal"'
+                    'data_attribute': 'data-awarded-funding="federal_grant"'
                 })
             }}
             {{
@@ -39,7 +39,7 @@
                     'label': 'State grant(s)',
                     'id': 'grants__state',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="grant_state"'
+                    'data_attribute': 'data-awarded-funding="state_grant"'
                 })
             }}
             {{
@@ -47,7 +47,7 @@
                     'label': 'School grant(s)',
                     'id': 'grants__school',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="grant_school"'
+                    'data_attribute': 'data-awarded-funding="school_grant"'
                 })
             }}
             {{
@@ -55,7 +55,7 @@
                     'label': 'Other grant(s)',
                     'id': 'grants__other',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="grant_other"'
+                    'data_attribute': 'data-awarded-funding="other_grant"'
                 })
             }}
             <div class="block block__sub">
@@ -65,7 +65,7 @@
                         'label': 'Military Tuition Assistance',
                         'id': 'grants__mta',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_mta"'
+                        'data_attribute': 'data-awarded-funding="mta_military"'
                     })
                 }}
                 {{
@@ -74,7 +74,7 @@
                         'helper_text': 'We recommend checking out the <a href="https://www.va.gov/gi-bill-comparison-tool/" target="_blank" class="external-link" rel="noreferrer noopener">GI Bill&reg; Comparison Tool</a> too.' | safe,
                         'id': 'grants__gibill',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_gibill"'
+                        'data_attribute': 'data-awarded-funding="gibill_military"'
                     })
                 }}
                 {{
@@ -82,7 +82,7 @@
                         'label': 'Other (Yellow Ribbon, etc)',
                         'id': 'grants_serviceOther',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_servicememberOther"'
+                        'data_attribute': 'data-awarded-funding="servicememberOther_military"'
                     })
                 }}
             </div>
@@ -97,7 +97,7 @@
                     'label': 'State scholarship(s)',
                     'id': 'scholarships__state',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="scholarship_state"'
+                    'data_attribute': 'data-awarded-funding="state_scholarship"'
                 })
             }}
             {{
@@ -105,7 +105,7 @@
                     'label': 'School scholarship(s)',
                     'id': 'scholarships__school',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="scholarship_school"'
+                    'data_attribute': 'data-awarded-funding="school_scholarship"'
                 })
             }}
             {{
@@ -113,7 +113,7 @@
                     'label': 'Other scholarship(s)',
                     'id': 'scholarships__other',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="scholarship_other"'
+                    'data_attribute': 'data-awarded-funding="other_scholarship"'
                 })
             }}
         </div>
@@ -123,9 +123,9 @@
             {{
                 text_item.render({
                     'label': 'Total grants and scholarships',
-                    'value': '$99,999',
+                    'value': '$0',
                     'type': 'subtotal',
-                    'data_attribute': 'data-financial-item="total_grantsScholarships"'
+                    'data_attribute': 'data-awarded-funding="total"'
                 })
             }}
         </div>
@@ -135,7 +135,7 @@
                 'caution',
                 true,
                 '',
-                '<b>Costs not covered:</b> <span data-financial-item="total_gap"></span>' | safe
+                '<b>Costs not covered:</b> <span data-cost-calculations="uncoveredCosts"></span>' | safe
         ) }} 
     </div>
     {{ notification.render(

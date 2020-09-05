@@ -10,7 +10,7 @@
             'caution',
             true,
             '',
-            'You have <span class="make-a-plan_gap" data-financial-item="total_gap">$XX,XXX</span> of uncovered costs for this year of schooling. Make a plan to get this down to $0.' | safe,
+            'You have <span class="make-a-plan_gap" data-cost-calculations="uncoveredCosts">$0</span> of uncovered costs for this year of schooling. Make a plan to get this down to $0.' | safe,
             'data-state_uncovered_costs="true"' | safe
         ) }}
     </div>
@@ -20,7 +20,7 @@
             'caution',
             true,
             '',
-            'You have <span class="make-a-plan_gap" data-financial-item="total_excessFunding">$XX,XXX</span> of excess funding for this year. Consider reducing your borrowing, starting with the highest interest loans.' | safe,
+            'You have <span class="make-a-plan_gap" data-cost-calculations="excessFunding">$0</span> of excess funding for this year. Consider reducing your borrowing, starting with the highest interest loans.' | safe,
             'data-state_excess_funding="true"' | safe
         ) }}
     </div>
@@ -40,7 +40,7 @@
                 'value': '$0',
                 'is_editable': 'True',
                 'status': 'warning',
-                'data_attribute': 'data-financial-item="total_costs"',
+                'data_attribute': 'data-costs="total_costs"',
                 'note': '<strong>Minimize indirect costs:</strong> Can you reduce your indirect costs by living at home or buying a refurbished laptop?' | safe
             } %}
             {% call() expandable(expandable_settings) %}
@@ -49,7 +49,7 @@
                         'label': 'Tuition and fees',
                         'id': 'plan__tuition',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="dirCost_tuition"'
+                        'data_attribute': 'data-costs="tuition_direct"'
                     })
                 }}
                 {{
@@ -57,7 +57,7 @@
                         'label': 'Housing and meals',
                         'id': 'plan__room-board',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="dirCost_housing"'
+                        'data_attribute': 'data-costs="housing_direct"'
                     })
                 }}
                 {{
@@ -65,7 +65,7 @@
                         'label': 'Other direct costs',
                         'id': 'plan__otherDirectCosts',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="dirCost_other"'
+                        'data_attribute': 'data-costs="other_direct"'
                     })
                 }}
                 {{
@@ -73,7 +73,7 @@
                         'label': 'Books and supplies',
                         'id': 'plan__books',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="indiCost_books"'
+                        'data_attribute': 'data-costs="books_indirect"'
                     })
                 }}
                 {{
@@ -81,7 +81,7 @@
                         'label': 'Transportation',
                         'id': 'plan__transportation',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="indiCost_transportation"'
+                        'data_attribute': 'data-costs="transportation_indirect"'
                     })
                 }}
                 {{
@@ -89,7 +89,7 @@
                         'label': 'Personal/other/miscellaneous expenses',
                         'id': 'plan__other',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="indiCost_other"'
+                        'data_attribute': 'data-costs="other_indirect"'
                     })
                 }}
                 {{
@@ -97,16 +97,16 @@
                         'label': 'Additional financial obligations',
                         'id': 'plan__otherIndirect',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="indiCost_otherIndirect"'
+                        'data_attribute': 'data-costs="other_additional"'
                     })
                 }}
             {% endcall %}
 
             {% set expandable_settings = {
                 'label': 'Grants & scholarships',
-                'value': '$99,999',
+                'value': '$0',
                 'is_editable': 'True',
-                'data_attribute': 'data-financial-item="total_grantsScholarships"',
+                'data_attribute': 'data-award-funding="total"',
                 'note': '<strong>Apply for additional grants and scholarships:</strong> Ask the financial aid office and your school counselor (if you’re currently in high school) for help. <a href="https://studentaid.gov/understand-aid/types/scholarships" target="_blank" class="external-link" rel="noreferrer noopener">The Department of Education has more ideas here.</a>' | safe
             } %}
             {% call() expandable(expandable_settings) %}
@@ -115,7 +115,7 @@
                         'label': 'Federal Pell Grants',
                         'id': 'plan__pellGrants',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_pell"'
+                        'data_attribute': 'data-award-funding="pell_grant"'
                     })
                 }}
                 {{
@@ -123,7 +123,7 @@
                         'label': 'Federal SEOG grant',
                         'id': 'plan__seog',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_seog"'
+                        'data_attribute': 'data-award-funding="seog_grant"'
                     })
                 }}
                 {{
@@ -131,7 +131,7 @@
                         'label': 'Other federal grants',
                         'id': 'plan__other-federal',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_otherFederal"'
+                        'data_attribute': 'data-award-funding="federal_grant"'
                     })
                 }}
                 
@@ -140,7 +140,7 @@
                         'label': 'State grant(s)',
                         'id': 'plan__stateGrants',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_state"'
+                        'data_attribute': 'data-award-funding="state_grant"'
                     })
                 }}
                 {{
@@ -148,7 +148,7 @@
                         'label': 'School grant(s)',
                         'id': 'plan__schoolGrants',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_school"'
+                        'data_attribute': 'data-award-funding="school_grant"'
                     })
                 }}
                 {{
@@ -156,7 +156,7 @@
                         'label': 'Other grant(s)',
                         'id': 'plan__grant-other',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_other"'
+                        'data_attribute': 'data-award-funding="other_grant"'
                     })
                 }}
                 {{
@@ -164,7 +164,7 @@
                         'label': 'Military Tuition Assistance',
                         'id': 'plan__mta',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_mta"'
+                        'data_attribute': 'data-award-funding="mta_military"'
                     })
                 }}
                 {{
@@ -172,7 +172,7 @@
                         'label': 'GI Bill',
                         'id': 'plan__gibill',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_gibill"'
+                        'data_attribute': 'data-award-funding="gibill_military"'
                     })
                 }}
                 
@@ -181,7 +181,7 @@
                         'label': 'Other servicemember benefits',
                         'id': 'plan__serviceMemberOther',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="grant_servicememberOther"'
+                        'data_attribute': 'data-award-funding="servicememberOther_military"'
                     })
                 }}
                 {{
@@ -189,7 +189,7 @@
                         'label': 'State scholarship(s)',
                         'id': 'plan__stateScholarships',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="scholarship_state"'
+                        'data_attribute': 'data-award-funding="state_scholarship"'
                     })
                 }}
                 {{
@@ -197,7 +197,7 @@
                         'label': 'School scholarship(s)',
                         'id': 'plan__schoolScholarships',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="scholarship_school"'
+                        'data_attribute': 'data-award-funding="school_scholarship"'
                     })
                 }}
                 {{
@@ -205,15 +205,15 @@
                         'label': 'Other scholarship(s)',
                         'id': 'plan__otherScholarships',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="scholarship_other"'
+                        'data_attribute': 'data-award-funding="other_scholarship"'
                     })
                 }}
             {% endcall %}
             {% set expandable_settings = {
                 'label': 'Work-study<span class="graduate-content">, fellowships, and assistantships</span>' | safe,
-                'value': '$99,999',
+                'value': '$0',
                 'is_editable': 'True',
-                'data_attribute': 'data-financial-item="total_workStudyFellowAssist"',
+                'data_attribute': 'data-work-funding="total"',
                 'note': '<strong>Pursue a work-study position:</strong> Working can reduce borrowing and provide other benefits, as long as it doesn’t interfere with academic progress.' | safe
             } %}
             {% call() expandable(expandable_settings) %}
@@ -222,7 +222,7 @@
                         'label': 'Work-study',
                         'id': 'plan__workStudy',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="workStudy_workStudy"'
+                        'data_attribute': 'data-work-funding="workStudy_workStudy"'
                     })
                 }}
                 <div class="graduate-content">
@@ -231,7 +231,7 @@
                         'label': 'Fellowship funding',
                         'id': 'plan__fellowship',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="fellowAssist_fellowship"'
+                        'data_attribute': 'data-work-funding="fellowship_fellow-or-assistantship"'
                     })
                 }}
                 {{
@@ -239,7 +239,7 @@
                         'label': 'Assistantship funding',
                         'id': 'plan__assistantship',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="fellowAssist_assistantship"'
+                        'data_attribute': 'data-work-funding="assistantship_fellow-or-assistantship"'
                     })
                 }}
                 </div>
@@ -247,9 +247,9 @@
 
             {% set expandable_settings = {
                 'label': 'Other resources',
-                'value': '$99,999',
+                'value': '$0',
                 'is_editable': 'True',
-                'data_attribute': 'data-financial-item="total_otherResources"',
+                'data_attribute': 'data-personal-funding="total"',
                 'note': '<span><strong>Find more cash:</strong> Can you contribute more from savings or work? Can anyone in your family help you?</span><span><strong>Ask about tuition payment plans:</strong> If the school offers a no-cost or low-cost installment plan, you and your family may be able to budget for paying your tuition gradually over time. Ask the financial aid office. </span>' | safe
             } %}
             {% call() expandable(expandable_settings) %}
@@ -258,7 +258,7 @@
                         'label': 'Personal funds',
                         'id': 'plan__personalSavings',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="savings_personal"'
+                        'data_attribute': 'data-personal-funding="personal_savings"'
                     })
                 }}
                 {{
@@ -266,7 +266,7 @@
                         'label': 'College savings plan (like 529 plans)',
                         'id': 'plan__collegeSavingsPlan',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="savings_collegeSavings"'
+                        'data_attribute': 'data-personal-funding="collegeSavings_savings"'
                     })
                 }}
                 {{
@@ -274,7 +274,7 @@
                         'label': 'Family contribution',
                         'id': 'plan__familySavings',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="savings_family"'
+                        'data_attribute': 'data-personal-funding="family_savings"'
                     })
                 }}
                 {{
@@ -282,7 +282,7 @@
                         'label': 'Estimated off-campus job income',
                         'id': 'plan__jobIncome',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="income_job"'
+                        'data_attribute': 'data-personal-funding="offCampusJob_income"'
                     })
                 }}
                 {{
@@ -290,7 +290,7 @@
                         'label': 'Estimated on-campus job income (not work-study)',
                         'id': 'plan__onCampusJob',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="income_onCampusJob"'
+                        'data_attribute': 'data-personal-funding="onCampusJob_income"'
                     })
                 }}
                 {{
@@ -298,7 +298,7 @@
                         'label': 'Employer tuition assistance or reimbursement',
                         'id': 'plan__employerAssistance',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="income_employerAssistance"'
+                        'data_attribute': 'data-personal-funding="employerAssist_income"'
                     })
                 }} 
                 {{
@@ -306,16 +306,16 @@
                         'label': 'Other funding',
                         'id': 'plan__otherFunding',
                         'value': '0',
-                        'data_attribute': 'data-financial-item="income_otherFunding"'
+                        'data_attribute': 'data-personal-funding="other_income"'
                     })
                 }}                     
             {% endcall %}
 
             {% set expandable_settings = {
                 'label': 'Federal loans (minus loan fees)',
-                'value': '$99,999',
+                'value': '$0',
                 'is_editable': 'True',
-                'data_attribute': 'data-financial-item="total_fedLoans"',
+                'data_attribute': 'data-federal-loans="total"',
                 'note': '<strong>Take out more federal loans:</strong> Generally, your financial aid offer includes the maximum amount of Direct Loans available to you. Contact the financial aid office to find out more.' | safe
             } %}
             {% call() expandable(expandable_settings) %}
@@ -326,23 +326,23 @@
                             'id': 'plan__directSubsidized',
                             'help_text': 'Interest starts accumulating 6 months after you leave school',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="fedLoan_directSub"'
+                            'data_attribute': 'data-federal-loans="amount_directSub"'
                         })
                     }}
                     {{
                         text_item.render({
                             'label': 'Interest rate (%)',
-                            'value': '4.53%',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="rate_directSub"'
+                            'data_attribute': 'data-constants-item="rate_directSub"'
                         })
                     }}
                     {{
                         text_item.render({
                             'label': 'Loan fee (%)',
-                            'value': '1.062%',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="fee_directSub"'
+                            'data_attribute': 'data-constants-item="fee_directSub"'
                         })
                     }}
                 </div>
@@ -353,32 +353,46 @@
                             'id': 'plan__directUnsub',
                             'helper_text': 'Interest starts accumulating 6 months after you leave school',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="fedLoan_directUnsub"'
+                            'data_attribute': 'data-federal-loans="amount_directUnsub"'
                         })
                     }} 
-                    {{
-                        text_item.render({
-                            'label': 'Interest rate (%)',
-                            'value': '9.99%',
-                            'type': 'text',
-                            'data_attribute': 'data-financial-item="rate_directUnsub"'
-                        })
-                    }}
+                    <div class="undergrad-content">
+                        {{
+                            text_item.render({
+                                'label': 'Interest rate (%)',
+                                'value': '',
+                                'type': 'text',
+                                'helper_text': 'The U.S. Department of Education sets the interest rate on federal student loans each July. If you are using this tool prior to July 1 for loans you will receive after July 1, then the interest rate may be different from what you see here.',
+                                'data_attribute': 'data-constants-item="unsubsidizedRateUndergrad"'
+                            })
+                        }}
+                    </div>
+                    <div class="graduate-content">
+                        {{
+                            text_item.render({
+                                'label': 'Interest rate (%)',
+                                'value': '',
+                                'type': 'text',
+                                'helper_text': 'The U.S. Department of Education sets the interest rate on federal student loans each July. If you are using this tool prior to July 1 for loans you will receive after July 1, then the interest rate may be different from what you see here.',
+                                'data_attribute': 'data-constants-item="unsubsidizedRateGrad"'
+                            })
+                        }}
+                    </div>
                     {{
                         text_item.render({
                             'label': 'Loan fee (%)',
-                            'value': '9.99%',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="fee_directUnsub"'
+                            'data_attribute': 'data-constants-item="fee_directUnsub"'
                         })
                     }}
                 </div>
             {% endcall %}
             {% set expandable_settings = {
                 'label': 'Other loans (minus loan fees)' | safe,
-                'value': '$99,999',
+                'value': '$0',
                 'is_editable': 'True',
-                'data_attribute': 'data-financial-item="total_publicLoans"',
+                'data_attribute': 'data-public-loans="total"',
                 'note': '<strong>Borrow more from the school:</strong> Contact the financial aid office to find out more. Remember, these loans may not offer the same protections as federal student loans.' | safe
             } %}
             {% call() expandable(expandable_settings) %}
@@ -388,7 +402,7 @@
                             'label': 'Loan from your state',
                             'id': 'plan__stateLoan',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="publicLoan_state"'
+                            'data_attribute': 'data-public-loans="amount_state"'
                         })
                     }}
                     {{
@@ -396,7 +410,7 @@
                             'label': 'Interest rate (%)',
                             'id': 'plan__stateLoanRate',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="rate_state"'
+                            'data_attribute': 'data-public-loans="rate_state"'
                         })
                     }}
                     {{
@@ -404,7 +418,7 @@
                             'label': 'Loan fee (%)',
                             'id': 'plan__stateLoanFee',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="fee_stateLoan"'
+                            'data_attribute': 'data-public-loans="fee_state"'
                         })
                     }}
                 </div>
@@ -414,7 +428,7 @@
                             'label': 'Loan from this school',
                             'id': 'plan__schoolLoan',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="publicLoan_institutional"'
+                            'data_attribute': 'data-public-loans="amount_institutional"'
                         })
                     }} 
                     {{
@@ -422,7 +436,7 @@
                             'label': 'Interest rate (%)',
                             'id': 'plan__schoolLoanRate',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="rate_institutional"'
+                            'data_attribute': 'data-public-loans="rate_institutional"'
                         })
                     }}
                     {{
@@ -430,7 +444,7 @@
                             'label': 'Loan fee (%)',
                             'id': 'plan__schoolLoanFee',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="fee_institutional"'
+                            'data_attribute': 'data-public-loans="fee_institutional"'
                         })
                     }}
                 </div>
@@ -440,7 +454,7 @@
                             'label': 'Loan from a non-profit',
                             'id': 'plan__nonprofitLoan',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="publicLoan_nonprofit"'
+                            'data_attribute': 'data-public-loans="amount_nonprofit"'
                         })
                     }}
                     {{
@@ -448,7 +462,7 @@
                             'label': 'Interest rate (%)',
                             'id': 'plan__nonprofitLoanRate',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="rate_nonprofit"'
+                            'data_attribute': 'data-public-loans="rate_nonprofit"'
                         })
                     }}
                     {{
@@ -456,7 +470,7 @@
                             'label': 'Loan fee (%)',
                             'id': 'plan__nonprofitLoanFee',
                             'value': '0',
-                            'data_attribute': 'data-financial-item="fee_nonprofit"'
+                            'data_attribute': 'data-public-loans="fee_nonprofit"'
                         })
                     }}
                 </div>
@@ -493,7 +507,7 @@
                         'label': 'Direct PLUS (Grad PLUS) loans' | safe,
                         'value': '$0',
                         'is_editable': 'True',
-                        'data_attribute': 'data-financial-item="total_plusLoans"'
+                        'data_attribute': 'data-plus-loans="total"'
                     } %}
                     {% call() expandable(expandable_settings) %}
                         <div class="plus-loan-form" >
@@ -502,24 +516,22 @@
                                     'label': 'Loan amount',
                                     'id': 'plan__gradPlus',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="plusLoan_gradPlus"'
+                                    'data_attribute': 'data-plus-loans="amount"'
                                 })
                             }}
-                            {{
-                                input.render({
+                            {{  
+                                text_item.render({
                                     'label': 'Interest rate (%)',
-                                    'id': 'plan__gradPlusRate',
-                                    'value': '0',
-                                    'data_attribute': 'data-financial-item="rate_gradPlus"',
-                                    'helper_text': 'If you are offered a fixed interest rate, it will not change throughout the life of the loan. If you are offered a variable interest rate, it might change. Enter the intial interest rate from your offer here.'
+                                    'value': '4.53%',
+                                    'type': 'text',
+                                    'data_attribute': 'data-constants-item="rate_gradPlus"'
                                 })
                             }}
                             {{
-                                input.render({
+                                text_item.render({
                                     'label': 'Loan fee (%)',
-                                    'id': 'plan__gradPlusFee',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="fee_gradPlus"',
+                                    'data_attribute': 'data-constants-item="fee_gradPlus"',
                                     'helper_text': 'Interest starts accumulating as soon as the money is sent to your school.'
                                 })
                             }}
@@ -537,7 +549,7 @@
                         'label': 'Parent PLUS loans' | safe,
                         'value': '$0',
                         'is_editable': 'True',
-                        'data_attribute': 'data-financial-item="total_plusLoans"'
+                        'data_attribute': 'data-plus-loans="total"'
                     } %}
                     {% call() expandable(expandable_settings) %}
                          <div class="plus-loan-form">
@@ -546,24 +558,22 @@
                                     'label': 'Loan amount',
                                     'id': 'plan__parentPlus',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="plusLoan_parentPlus"'
+                                    'data_attribute': 'data-plus-loans="amount"'
                                 })
                             }}
-                            {{
-                                input.render({
+                            {{  
+                                text_item.render({
                                     'label': 'Interest rate (%)',
-                                    'id': 'plan__parentPlusRate',
-                                    'value': '0',
-                                    'data_attribute': 'data-financial-item="rate_parentPlus"',
-                                    'helper_text': 'If you are offered a fixed interest rate, it will not change throughout the life of the loan. If you are offered a variable interest rate, it might change. Enter the intial interest rate from your offer here.'
+                                    'value': '',
+                                    'type': 'text',
+                                    'data_attribute': 'data-constants-item="rate_parentPlus"'
                                 })
                             }}
                             {{
-                                input.render({
+                                text_item.render({
                                     'label': 'Loan fee (%)',
-                                    'id': 'plan__parentPlusFee',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="fee_parentPlus"',
+                                    'data_attribute': 'data-constants-item="fee_parentPlus"',
                                     'helper_text': 'Interest starts accumulating as soon as the money is sent to your school.'
                                 })
                             }}
@@ -590,7 +600,7 @@
                         'label': 'Private loans',
                         'value': '$0',
                         'is_editable': 'True',
-                        'data_attribute': 'data-financial-item="total_privateLoans"',
+                        'data_attribute': 'data-private-loans="total"',
                         'note': 'If you need a private loan, you\'ll have to apply directly to lenders. Shop around for the lowest interest rates and loan fees. Private lenders typically require a cosigner for these loans.'
                     } %}
                     {% call() expandable(expandable_settings) %}
@@ -601,7 +611,7 @@
                                     'label': 'Loan amount',
                                     'id': 'plan__privateLoan1',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="privLoan_privateLoan1"'
+                                    'data_attribute': 'data-private-loans="amount_privateLoan1"'
                                 })
                             }}
                             {{
@@ -609,7 +619,7 @@
                                     'label': 'Interest rate (%)',
                                     'id': 'plan__privateLoan1Rate',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="rate_privateLoan1"',
+                                    'data_attribute': 'data-private-loans="rate_privateLoan1"',
                                     'helper_text': 'If you are offered a fixed interest rate, it will not change throughout the life of the loan. If you are offered a variable interest rate, it might change. Enter the intial interest rate from your offer here.'
                                 })
                             }}
@@ -618,7 +628,7 @@
                                     'label': 'Loan fee (%)',
                                     'id': 'plan__privateLoan1Fee',
                                     'value': '0',
-                                    'data_attribute': 'data-financial-item="fee_privateLoan1"',
+                                    'data_attribute': 'data-private-loans="fee_privateLoan1"',
                                     'helper_text': 'Interest starts accumulating as soon as the money is sent to your school.'
                                 })
                             }}

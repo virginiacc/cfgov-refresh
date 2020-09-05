@@ -1,8 +1,104 @@
-import { expensesModel } from '../models/expenses-model.js';
-import { financialModel } from '../models/financial-model.js';
-import { schoolModel } from '../models/school-model.js';
-import { stateModel } from '../models/state-model.js';
+const parameterMap = {
+  iped: ['schoolID', 'school'],
 
+  pid: ['pid', 'schoolProgram'],
+
+  houp: ['programHousing', 'program'],
+  typp: ['programType', 'program'],
+  lenp: ['programLength', 'program'],
+  ratp: ['programRate', 'program'],
+  depp: ['programStudentType', 'program'],
+
+  cobs: ['costsQuestion', 'app'],
+  oid: ['oid', 'app'],
+  iqof: ['impactOffer', 'app'],
+  iqlo: ['impactLoans', 'app'],
+  utm_source: ['utm_source', 'app'],
+  utm_medium: ['utm_medium', 'app'],
+  utm_campaign: ['utm_campaign', 'app'],
+  regs: ['region', 'app'],
+
+  tuit: ['tuition_direct', 'costs'],
+  hous: ['housing_direct', 'costs'],
+  diro: ['other_direct', 'costs'],
+  book: ['books_indirect', 'costs'],
+  tran: ['transportation_indirect', 'costs'],
+  indo: ['other_indirect', 'costs'],
+  nda: ['other_additional', 'costs'],
+
+  pelg: ['pell_grant', 'awardedFunding'],
+  seog: ['seog_grant', 'awardedFunding'],
+  fedg: ['federal_grant', 'awardedFunding'],
+  stag: ['state_grant', 'awardedFunding'],
+  schg: ['school_grant', 'awardedFunding'],
+  othg: ['other_grant', 'awardedFunding'],
+  mta: ['milTuitAssist_military', 'awardedFunding'],
+  gi: ['GIBill_military', 'awardedFunding'],
+  othm: ['other_military', 'awardedFunding'],
+  stas: ['state_scholarship', 'awardedFunding'],
+  schs: ['school_scholarship', 'awardedFunding'],
+  oths: ['other_scholarship', 'awardedFunding'],
+
+  wkst: ['workStudy_workStudy', 'workFunding'],
+  fell: ['fund_fellowship', 'workFunding'],
+  asst: ['fund_assistantship', 'workFunding'],
+
+  subl: ['amount_directSub', 'federalLoans'],
+  unsl: ['amount_directUnsub', 'federalLoans'],
+
+  plus: ['amount', 'plusLoans'],
+
+  pers: ['personal_savings', 'personalFunding'],
+  fams: ['family_savings', 'personalFunding'],
+  '529p': ['collegeSavings_savings', 'personalFunding'],
+  offj: ['jobOffCampus_income', 'personalFunding'],
+  onj: ['jobOnCampus_income', 'personalFunding'],
+  eta: ['employerAssist_income', 'personalFunding'],
+  othf: ['other_income', 'personalFunding'],
+
+  insl: ['amount_institutional', 'publicLoans'],
+  insr: ['rate_institutional', 'publicLoans'],
+  insf: ['fee_institutional', 'publicLoans'],
+  stal: ['amount_state', 'publicLoans'],
+  star: ['rate_state', 'publicLoans'],
+  staf: ['fee_state', 'publicLoans'],
+  npol: ['amount_nonprofit', 'publicLoans'],
+  npor: ['rate_nonprofit', 'publicLoans'],
+  npof: ['fee_nonprofit', 'publicLoans'],
+
+  pvl1: ['privLoan_privLoan1', 'privateLoans'],
+  pvr1: ['privloan_privLoanRate1', 'privateLoans'],
+  pvf1: ['privloan_privLoanFee1', 'privateLoans'],
+
+  houx: ['housing', 'expenses'],
+  fdx: ['food', 'expenses'],
+  clhx: ['clothing', 'expenses'],
+  trnx: ['transportation', 'expenses'],
+  hltx: ['healthcare', 'expenses'],
+  entx: ['entertainment', 'expenses'],
+  retx: ['retirement', 'expenses'],
+  taxx: ['taxes', 'expenses'],
+  chcx: ['childcare', 'expenses'],
+  othx: ['other', 'expenses'],
+  dbtx: ['currentDebt', 'expenses']
+};
+
+// generates a reverse map from parameterMap
+// (with format: {stateSlice: {stateProp: URLProp}})
+// that can be used to build a query string from state slices
+function generateReverseMap() {
+  let reverseMap = {};
+  Object.keys( parameterMap ).forEach( ( key, index ) => {
+    let value = parameterMap[key];
+    let prop = value[0];
+    let slice = value[1];
+    if ( !reverseMap[slice] ) {
+      reverseMap[slice] = {};
+    } 
+    reverseMap[slice][prop] = key;
+  });
+  return reverseMap;
+}
 
 /**
  * getQueryVariables - Check the url for queryString and interpret it into an object
@@ -19,140 +115,87 @@ function getQueryVariables() {
     const value = decodeURIComponent( pair[1] );
     queryVariables[key] = value;
   } );
-
   return queryVariables;
 }
 
+const determineCostsOfferValue = function( queryObj ) {
+  const costParameters = [ 'tuit', 'hous', 'diro', 'book', 'indo', 'nda', 'tran' ];
+  let cobs = queryObj.cobs;
+  if ( queryObj.hasOwnProperty( 'oid' ) ) {
+    cobs = 'o';
+  } else if ( typeof cobs === 'undefined' ) {
+    if ( costParameters.some(key => queryObj.hasOwnProperty(key)) ) {
+      cobs = 'y';
+    }
+  }
+  return cobs;
+}
+
+function processQueryObj( queryObj ) {
+  let data = {};
+  let hasPlus = false;
+  let programType = false;
+  queryObj.cobs = determineCostsOfferValue( queryObj );
+  Object.keys( queryObj ).forEach( ( key, index ) => {
+    let value = queryObj[key];
+    let parameterData = parameterMap[key];
+    let prop = parameterData[0];
+    let slice = parameterData[1];
+    if ( !data[slice] ) {
+      data[slice] = {};
+    }
+    // TODO: handle slice formatting? financial, costs, expenses
+    // should be numbers
+    data[slice][prop] = value;
+  });
+  return data;
+}
+
+function getDataFromURL() {
+  let queryObj = getQueryVariables();
+  return processQueryObj( queryObj );
+}
+
+function getQueryStringParams( state, stateToQueryMap ) {
+  let data = {};
+
+  Object.keys( stateToQueryMap ).forEach( ( key, index ) => {
+    const sliceObj = stateToQueryMap[key];
+    let stateObj = state[key];
+    Object.keys( sliceObj ).forEach( ( sliceKey, idx ) => {
+      // if expenses && region, check values against regional values
+      data[sliceObj[sliceKey]] = stateObj[sliceKey];
+    });
+  });
+
+  return data;
+}
+
 /**
- * _buildUrlQueryString - Retreieve values from the models and transform them into a
+ * _buildUrlQueryString - Retrieve values from the models and transform them into a
  * querystring
  * @returns {String} a formatted query string based on model values
  */
-function buildUrlQueryString() {
-  const expensesValues = expensesModel.values;
-  const financialValues = financialModel.values;
-  const schoolValues = schoolModel.values;
-  const stateValues = stateModel.values;
+function buildQueryString( params ) {
   let query = '?';
-
-  /* TODO: This list of URL variables should be authoritative, and not repeated in the
-     update-models.js file. */
-  const variables = {
-    'iped': schoolValues.schoolID,
-    'oid': schoolValues.oid,
-
-    'pid': stateValues.pid,
-    'houp': stateValues.programHousing,
-    'typp': stateValues.programType,
-    'lenp': stateValues.programLength,
-    'ratp': stateValues.programRate,
-    'depp': stateValues.programStudentType,
-    'cobs': stateValues.costsQuestion,
-    'regs': stateValues.expensesRegion,
-    'iqof': stateValues.impactOffer,
-    'iqlo': stateValues.impactLoans,
-    'utm_source': stateValues.utmSource,
-    'utm_medium': stateValues.utm_medium,
-    'utm_campaign': stateValues.utm_campaign,
-
-    'tuit': financialValues.dirCost_tuition,
-    'hous': financialValues.dirCost_housing,
-    'diro': financialValues.dirCost_other,
-
-    'book': financialValues.indiCost_books,
-    'indo': financialValues.indiCost_other,
-    'tran': financialValues.indiCost_transportation,
-    'nda': financialValues.indiCost_added,
-
-    'pelg': financialValues.grant_pell,
-    'seog': financialValues.grant_seog,
-    'fedg': financialValues.grant_federal,
-    'stag': financialValues.grant_state,
-    'schg': financialValues.grant_school,
-    'othg': financialValues.grant_other,
-
-    'mta': financialValues.mil_milTuitAssist,
-    'gi': financialValues.mil_GIBill,
-    'othm': financialValues.mil_other,
-
-    'stas': financialValues.scholarship_state,
-    'schs': financialValues.scholarship_school,
-    'oths': financialValues.scholarship_other,
-
-    'wkst': financialValues.workStudy_workStudy,
-
-    'fell': financialValues.fund_fellowship,
-    'asst': financialValues.fund_assistantship,
-
-    'subl': financialValues.fedLoan_directSub,
-    'unsl': financialValues.fedLoan_directUnsub,
-
-    'insl': financialValues.publicLoan_institutional,
-    'insr': financialValues.rate_institutional,
-    'insf': financialValues.fee_institutional,
-    'stal': financialValues.publicLoan_state,
-    'star': financialValues.rate_state,
-    'staf': financialValues.fee_state,
-    'npol': financialValues.publicLoan_nonprofit,
-    'npor': financialValues.rate_nonprofit,
-    'npof': financialValues.fee_nonprofit,
-
-    'pers': financialValues.savings_personal,
-    'fams': financialValues.savings_family,
-    '529p': financialValues.savings_collegeSavings,
-
-    'offj': financialValues.income_jobOffCampus,
-    'onj': financialValues.income_jobOnCampus,
-    'eta': financialValues.income_employerAssist,
-    'othf': financialValues.income_other,
-
-    'pvl1': financialValues.privLoan_privLoan1,
-    'pvr1': financialValues.privloan_privLoanRate1,
-    'pvf1': financialValues.privloan_privLoanFee1,
-
-    'plus': financialValues.plusLoan_parentPlus
-  };
-
-  const expensesVariables = {
-    houx: expensesValues.item_housing,
-    fdx: expensesValues.item_food,
-    clhx: expensesValues.item_clothing,
-    trnx: expensesValues.item_transportation,
-    hltx: expensesValues.item_healthcare,
-    entx: expensesValues.item_entertainment,
-    retx: expensesValues.item_retirement,
-    taxx: expensesValues.item_taxes,
-    chcx: expensesValues.item_childcare,
-    othx: expensesValues.item_other,
-    dbtx: expensesValues.item_currentDebt
-  };
-
-  if ( stateValues.programLevel === 'graduate' ) {
-    variables.plus = financialValues.plusLoan_gradPlus;
-  }
-
-  /* TODO: Don't bother putting expenses in the URL if they equal the default
-     for ( let val in expensesVariables ) {
-     CHECK IF THE VALUE HAS CHANGED FROM THE DEFAULT
-     } */
-
-  Object.assign( variables, expensesVariables );
-
-  for ( const key in variables ) {
-    if ( typeof variables[key] !== 'undefined' && variables[key] !== 0 &&
-                variables[key] !== null && variables[key] !== false ) {
-      if ( query.length > 1 ) query += '&';
-      query += key + '=' + variables[key];
+  Object.keys( params ).forEach( ( key, index ) => {
+    if ( params[key] ) {
+      if ( query.length > 1 ) {
+        query += '&';
+      }
+      query += key + '=' + params[key];
     }
-  }
+  });
+  return query === '?' ? '' : query;
+}
 
-  if ( query === '?' ) query = '';
-
-  return query;
-
+function updateQueryStringFromState( state, stateToQueryMap ) {
+  const params = getQueryStringParams( state, stateToQueryMap );
+  return buildQueryString( params );
 }
 
 export {
-  buildUrlQueryString,
-  getQueryVariables
+  updateQueryStringFromState,
+  getDataFromURL,
+  generateReverseMap
 };

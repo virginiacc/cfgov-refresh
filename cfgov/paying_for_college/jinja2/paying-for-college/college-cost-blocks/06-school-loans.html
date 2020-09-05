@@ -17,7 +17,7 @@
                 'label': 'Loan from your state',
                 'id': 'loans__stateLoan',
                 'value': '0',
-                'data_attribute': 'data-financial-item="publicLoan_state"'
+                'data_attribute': 'data-public-loans="amount_state"'
             })
         }}
         {{
@@ -25,7 +25,7 @@
                 'label': 'Interest rate (%)',
                 'id': 'loans__stateLoanRate',
                 'value': '0',
-                'data_attribute': 'data-financial-item="rate_state"'
+                'data_attribute': 'data-public-loans="rate_state"'
             })
         }}
         {{
@@ -33,7 +33,7 @@
                 'label': 'Loan fee (%)',
                 'id': 'loans__stateLoanFee',
                 'value': '0',
-                'data_attribute': 'data-financial-item="fee_state"'
+                'data_attribute': 'data-public-loans="fee_state"'
             })
         }}
     </div>
@@ -43,7 +43,7 @@
                 'label': 'Loan from the school',
                 'id': 'loans__schoolLoan',
                 'value': '0',
-                'data_attribute': 'data-financial-item="publicLoan_institutional"'
+                'data_attribute': 'data-public-loans="amount_institutional"'
             })
         }}
         {{
@@ -51,7 +51,7 @@
                 'label': 'Interest rate (%)',
                 'id': 'loans__schoolLoanRate',
                 'value': '0',
-                'data_attribute': 'data-financial-item="rate_institutional"'
+                'data_attribute': 'data-public-loans="rate_institutional"'
             })
         }}
         {{
@@ -59,7 +59,7 @@
                 'label': 'Loan fee (%)',
                 'id': 'loans__schoolLoanFee',
                 'value': '0',
-                'data_attribute': 'data-financial-item="fee_institutional"'
+                'data_attribute': 'data-public-loans="fee_institutional"'
             })
         }}
     </div>
@@ -70,7 +70,7 @@
                 'label': 'Loan from a non-profit',
                 'id': 'loans__nonprofitLoan',
                 'value': '0',
-                'data_attribute': 'data-financial-item="publicLoan_nonprofit"'
+                'data_attribute': 'data-public-loans="amount_nonprofit"'
             })
         }}
         {{
@@ -78,7 +78,7 @@
                 'label': 'Interest rate (%)',
                 'id': 'loans__nonprofitLoanRate',
                 'value': '0',
-                'data_attribute': 'data-financial-item="rate_nonprofit"'
+                'data_attribute': 'data-public-loans="rate_nonprofit"'
             })
         }}
         {{
@@ -86,16 +86,16 @@
                 'label': 'Loan fee (%)',
                 'id': 'loans__nonprofitLoanFee',
                 'value': '0',
-                'data_attribute': 'data-financial-item="fee_nonprofit"'
+                'data_attribute': 'data-public-loans="fee_nonprofit"'
             })
         }}
     </div>
     {{
         text_item.render({
             'label': 'Total funding from other loans (minus loan fees)',
-            'value': '$99, 999',
+            'value': '$0',
             'type': 'total',
-            'data_attribute': 'data-financial-item="total_publicLoans"'
+            'data_attribute': 'data-public-loans="total"'
         })
     }}
 
@@ -104,7 +104,7 @@
                 'caution',
                 true,
                 '',
-                '<b>Costs not covered:</b> <span data-financial-item="total_gap"></span>' | safe
+                '<b>Costs not covered:</b> <span data-cost-calculations="uncoveredCosts"></span>' | safe
         ) }} 
     </div>
     

@@ -155,6 +155,16 @@
 		    flex-basis: 110px;
 		    flex-grow: 0;
 		    flex-shrinK: 0;
+
+		    &[data-percentile="bottom third"] {
+				border-color: @college-costs-chart-min;
+			}
+			&[data-percentile="middle third"] {
+				border-color: @college-costs-chart-median;
+			}
+			&[data-percentile="top third"] {
+				border-color: @college-costs-chart-max;
+			}
 		}
 
 		.m-form-field__radio {

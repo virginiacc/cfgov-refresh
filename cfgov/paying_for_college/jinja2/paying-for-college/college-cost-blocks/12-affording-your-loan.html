@@ -30,7 +30,7 @@
 
         {{ number_callout.render({
                 'header': 'Estimated monthly loan payment',
-                'data_attribute': 'data-financial-item="debt_tenYearMonthly"',
+                'data_attribute': 'data-debt-calculations="tenYearMonthly"',
                 'additional_classes': 'number-callout__large number-callout__border-top',
                 'value': '$0.00'
             }) 
@@ -44,7 +44,7 @@
 
         <div class="number-callout number-callout__large">
             <div class="number-callout_value">
-              About <span data-financial-item="debt_repayHours" data-is-number="true">??</span> hours, or <span data-financial-item="debt_repayWorkWeeks" data-is-number="true">?</span> forty-hour work weeks
+              About <span data-debt-calculations="repayHours" data-is-number="true">??</span> hours, or <span data-debt-calculations="repayWorkWeeks" data-is-number="true">?</span> forty-hour work weeks
             </div>
         </div>
 
@@ -56,7 +56,7 @@
 
         {{ number_callout.render({
                 'header': 'Estimated monthly loan payment',
-                'data_attribute': 'data-financial-item="debt_tenYearMonthly"',
+                'data_attribute': 'data-debt-calculations="tenYearMonthly"',
                 'additional_classes': 'number-callout__large number-callout__border-top',
                 'value': '$0.00'
             }) 
@@ -66,7 +66,7 @@
         <div class="undergrad-content">
             {{ number_callout.render({
                     'header': 'Monthly median salary for this school\'s recent students',
-                    'data_attribute': 'data-financial-item="salary_monthly"',
+                    'data_attribute': 'data-debt-calculations="monthly_salary"',
                     'additional_classes': 'number-callout__large number-callout__border-top',
                     'value': '$0.00'
                 })
@@ -75,7 +75,7 @@
         <div data-state-based-visibility="program-is-selected">
             {{ number_callout.render({
                     'header': 'Monthly median first-year salary for this program\'s graduates',
-                    'data_attribute': 'data-financial-item="salary_monthly"',
+                    'data_attribute': 'data-debt-calculations="monthly_salary"',
                     'additional_classes': 'number-callout__large number-callout__border-top',
                     'value': '$0.00'
                 })
@@ -84,9 +84,9 @@
 
         {{ number_callout.render({
                 'header': 'Average monthly spending at this salary',
-                'data_attribute': 'data-expenses-item="total_expenses"',
+                'data_attribute': 'data-expenses="total"',
                 'additional_classes': 'number-callout__large number-callout__border-top',
-                'value': '$4,016.67'
+                'value': '$0'
             }) 
         }}
 
@@ -118,64 +118,64 @@
             input.render({
                 'label': 'Housing',
                 'id': 'expenses__housing',
-                'value': '$1,138',
-                'data_attribute': 'data-expenses-item="item_housing"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="housing"'
             })
         }}
         {{
             input.render({
                 'label': 'Food',
                 'id': 'expenses__food',
-                'value': '$486',
-                'data_attribute': 'data-expenses-item="item_food"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="food"'
             })
         }}
         {{
             input.render({
                 'label': 'Clothing',
                 'id': 'expenses__clothing',
-                'value': '$118',
-                'data_attribute': 'data-expenses-item="item_clothing"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="clothing"'
             })
         }}
         {{
             input.render({
                 'label': 'Transportation',
                 'id': 'expenses__transportation',
-                'value': '$636',
-                'data_attribute': 'data-expenses-item="item_transportation"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="transportation"'
             })
         }}
        {{
             input.render({
                 'label': 'Healthcare',
                 'id': 'expenses__healthcare',
-                'value': '$280',
-                'data_attribute': 'data-expenses-item="item_healthcare"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="healthcare"'
             })
         }}
         {{
             input.render({
                 'label': 'Entertainment',
                 'id': 'expenses__entertainment',
-                'value': '$151',
-                'data_attribute': 'data-expenses-item="item_entertainment"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="entertainment"'
             })
         }}
         {{
             input.render({
                 'label': 'Retirement & savings',
                 'id': 'expenses__savings',
-                'value': '$278',
-                'data_attribute': 'data-expenses-item="item_retirement"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="retirement"'
             })
         }}
         {{
             input.render({
                 'label': 'Taxes',
                 'id': 'expenses__taxes',
-                'value': '$147',
-                'data_attribute': 'data-expenses-item="item_taxes"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="taxes"'
             })
         }}
        {{
@@ -183,23 +183,23 @@
                 'label': 'Childcare',
                 'id': 'expenses__childcare',
                 'value': '$0',
-                'data_attribute': 'data-expenses-item="item_childcare"'
+                'data_attribute': 'data-expenses="childcare"'
             })
         }}
         {{
             input.render({
                 'label': 'Other',
                 'id': 'expenses__other',
-                'value': '$300',
-                'data_attribute': 'data-expenses-item="item_other"'
+                'value': '$0',
+                'data_attribute': 'data-expenses="other"'
             })
         }}
 
         {{ number_callout.render({
                 'header': 'Total money left',
-                'data_attribute': 'data-expenses-item="total_remainder"',
+                'data_attribute': 'data-debt-calculations="remainder"',
                 'additional_classes': 'number-callout__large number-callout__border-top',
-                'value': '$373'
+                'value': '$0'
             }) 
         }}
 
@@ -208,7 +208,7 @@
             'caution',
             true,
             '',
-            'The estimate leaves you with a shortage of <span class="gap" data-expenses-item="total_remainder">$373</span>. Try adjusting the expenses to balance your budget.' | safe
+            'The estimate leaves you with a shortage of <span class="gap" data-debt-calculations="gap">$373</span>. Try adjusting the expenses to balance your budget.' | safe
         ) }}
         </div>
         <div data-state-based-visibility='expenses-surplus'>
@@ -216,7 +216,7 @@
             'default',
             true,
             '',
-            'The estimate leaves you with a surplus of <span class="gap" data-expenses-item="total_remainder">$373</span>, increasing your savings.' | safe
+            'The estimate leaves you with a surplus of <span class="gap" data-debt-calculations="gap">$373</span>, increasing your savings.' | safe
         ) }}
         </div>
     </div>

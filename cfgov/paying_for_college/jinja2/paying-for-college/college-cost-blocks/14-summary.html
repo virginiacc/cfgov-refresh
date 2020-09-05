@@ -14,7 +14,7 @@
         {{
             text_item.render({
                 'label': 'School',
-                'value': '[school name]',
+                'value': '',
                 'type': 'text',
                 'data_attribute': 'data-school-item="school"'
             })
@@ -22,41 +22,41 @@
         {{
             text_item.render({
                 'label': 'Program type',
-                'value': '[program type]',
+                'value': '',
                 'type': 'text',
-                'data_attribute': 'data-state-item="programTypeText"'
+                'data_attribute': 'data-program-item="programTypeText"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Program name',
-                'value': '[program name]',
+                'value': '',
                 'type': 'text',
-                'data_attribute': 'data-state-item="programName"'
+                'data_attribute': 'data-school-program="programName"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Number of years',
-                'value': '[program length]',
+                'value': '',
                 'type': 'text',
-                'data_attribute': 'data-state-item="programLengthText"'
+                'data_attribute': 'data-program-item="programLengthText"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Tuition type',
-                'value': '[program rate]',
+                'value': '',
                 'type': 'text',
-                'data_attribute': 'data-state-item="programRateText"'
+                'data_attribute': 'data-program-item="programRateText"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Where do you plan to live?',
-                'value': '[housing]',
+                'value': '',
                 'type': 'text',
-                'data_attribute': 'data-state-item="programHousingText"'
+                'data_attribute': 'data-program-item="programHousingText"'
             })
         }}
     </div>
@@ -68,14 +68,14 @@
                     'caution',
                     true,
                     '',
-                    '<b>Costs not covered yet:</b> <span data-financial-item="total_gap"></span>' | safe
+                    '<b>Costs not covered yet:</b> <span data-cost-calculations="uncoveredCosts"></span>' | safe
             ) }} 
         </div>
         <div class="o-expandable-group">
             {% set expandable_settings = {
                 'label': 'Your estimated total cost this year',
-                'value': '$99,999',
-                'data_attribute': 'data-financial-item="total_costs"'
+                'value': '',
+                'data_attribute': 'data-costs="total"'
             } %}
             {% call() expandable(expandable_settings) %}
                 <div class="block block__sub block__flush-top">
@@ -85,7 +85,7 @@
                             'label': 'Tuition and fees',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="dirCost_tuition"'
+                            'data_attribute': 'data-costs="tuition_direct"'
                         })
                     }}
                     {{
@@ -93,7 +93,7 @@
                             'label': 'Housing and meals',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="dirCost_housing"'
+                            'data_attribute': 'data-costs="housing_direct"'
                         })
                     }}
                     {{
@@ -101,7 +101,7 @@
                             'label': 'Additional direct costs',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="dirCost_other"'
+                            'data_attribute': 'data-costs="other_direct"'
                         })
                     }}
                 </div>
@@ -112,7 +112,7 @@
                             'label': 'Books & supplies',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="indiCost_books"'
+                            'data_attribute': 'data-costs="books_indirect"'
                         })
                     }}
                     {{
@@ -120,7 +120,7 @@
                             'label': 'Transportation',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="indiCost_transportation"'
+                            'data_attribute': 'data-costs="transportation_indirect"'
                         })
                     }}
                     {{
@@ -128,7 +128,7 @@
                             'label': 'Other/miscellaneous expenses',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="indiCost_other"'
+                            'data_attribute': 'data-costs="other_indirect"'
                         })
                     }}
                 </div>
@@ -138,7 +138,7 @@
                             'label': 'Additional indirect costs',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="otherCosts_additional"'
+                            'data_attribute': 'data-costs="other_additional"'
                         })
                     }}                    
                 </div>
@@ -146,8 +146,8 @@
 
             {% set expandable_settings = {
                 'label': 'Total funding',
-                'value': '$99,999',
-                'data_attribute': 'data-financial-item="total_funding"'
+                'value': '',
+                'data_attribute': 'data-cost-calculations="contributions"'
             } %}
             {% call() expandable(expandable_settings) %}
                 <div class="block block__sub block__flush-top">
@@ -157,7 +157,7 @@
                             'label': 'Grants and scholarships',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="total_grantsScholarships"'
+                            'data_attribute': 'data-awarded-funding="total"'
                         })
                     }}
                     {{
@@ -165,7 +165,7 @@
                             'label': 'Work-study',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="total_income"'
+                            'data_attribute': 'data-work-funding="total"'
                         })
                     }}
                     {{
@@ -173,7 +173,7 @@
                             'label': 'Other resources',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="total_personal"'
+                            'data_attribute': 'data-personal-funding="total"'
                         })
                     }}
                 </div>
@@ -184,7 +184,7 @@
                             'label': 'Federal Loans',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="total_fedLoans"'
+                            'data_attribute': 'data-federal-loans="total"'
                         })
                     }}
                     {{
@@ -192,7 +192,7 @@
                             'label': 'Loans from your state, the school, or a non-profit',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="total_publicLoans"'
+                            'data_attribute': 'data-public-loans="total"'
                         })
                     }}
                     {{
@@ -200,7 +200,7 @@
                             'label': 'Private loans',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="privLoan_privLoan1"'
+                            'data_attribute': 'data-private-loans="total"'
                         })
                     }}
                     {{
@@ -208,7 +208,7 @@
                             'label': 'PLUS loans',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="total_plusLoans"'
+                            'data_attribute': 'data-plus-loans="total"'
                         })
                     }}
                 </div>
@@ -222,7 +222,7 @@
             {% set expandable_settings = {
                 'label': 'Could this be too much debt? How does the projected total debt compare to the median salary?',
                 'value': '',
-                'note': 'The projected total debt is <span class="inline" data-financial-item="other_debtGuideDifference">$0</span> <span data-state-based-visibility="debt-rule-violation">more</span><span data-state-based-visibility="debt-rule-passed">less</span> than the median salary. ',
+                'note': 'The projected total debt is <span class="inline" data-debt-calculations="debtGuideDifference"></span> <span data-state-based-visibility="debt-rule-violation">more</span><span data-state-based-visibility="debt-rule-passed">less</span> than the median salary. ',
                 'data_attribute': ''
             } %}
             {% call() expandable(expandable_settings) %}
@@ -230,26 +230,26 @@
                 {{
                     text_item.render({
                         'label': 'Projected total debt',
-                        'value': '$0',
+                        'value': '',
                         'type': 'text',
-                        'data_attribute': 'data-financial-item="debt_totalAtGrad"'
+                        'data_attribute': 'data-debt-calculations="totalAtGrad"'
                     })
                 }}
                 {{
                     text_item.render({
                         'label': 'Includes Parent PLUS loans?',
-                        'value': 'Yes',
+                        'value': '',
                         'type': 'text',
-                        'data_attribute': 'data-state-item="repayParentPlus"'
+                        'data_attribute': 'data-plus-loans="repayParentPlus"'
                     })
                 }}
                 <div data-state-based-visibility="program-is-selected">
                     {{
                         text_item.render({
                             'label': 'Median first-year salary of this program\'s graduates',
-                            'value': '$0',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="salary_annual"'
+                            'data_attribute': 'data-debt-calculations="annual_salary"'
                         })
                     }}
                 </div>
@@ -257,9 +257,9 @@
                     {{
                         text_item.render({
                             'label': 'Median salary of this school\'s recent students',
-                            'value': '$0',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="salary_annual"'
+                            'data_attribute': 'data-debt-calculations="annual_salary"'
                         })
                     }}
                 </div>
@@ -277,16 +277,16 @@
 
             {% set expandable_settings = {
                 'label': 'What will interest cost me?',
-                'value': '$99,999',
-                'data_attribute': 'data-financial-item="debt_tenYearInterest"'
+                'value': '',
+                'data_attribute': 'data-debt-calculations="tenYearInterest"'
             } %}
             {% call() expandable(expandable_settings) %}
                 {{
                     text_item.render({
                         'label': 'Total cost of borrowing over 10-year repayment period',
-                        'value': '$0',
+                        'value': '',
                         'type': 'text',
-                        'data_attribute': 'data-financial-item="debt_tenYearTotal"'
+                        'data_attribute': 'data-debt-calculations="tenYearTotal"'
                     })
                 }}
             {% endcall %}
@@ -300,7 +300,7 @@
             {% call() expandable(expandable_settings) %}
                 <div class="financial-item financial-item__full-width">
                     <div>How long will it take to earn my estimated payment?</div>
-                    <div>It will take <span class="inline" data-financial-item="debt_repayHours" data-is-number="true"> 0</span> hours to earn the estimated payment, assuming a wage of $15 an hour after taxes.</div>
+                    <div>It will take <span class="inline" data-debt-calculations="repayHours" data-is-number="true"> 0</span> hours to earn the estimated payment, assuming a wage of $15 an hour after taxes.</div>
                 </div>
                 <div class="financial-item financial-item__full-width">
                     <div>Can I afford my payment within a monthly budget?</div>
@@ -309,18 +309,18 @@
                 {{
                     text_item.render({
                         'label': 'Estimated monthly loan payment',
-                        'value': '$0',
+                        'value': '',
                         'type': 'text',
-                        'data_attribute': 'data-financial-item="debt_tenYearMonthly"'
+                        'data_attribute': 'data-debt-calculations="tenYearMonthly"'
                     })
                 }}
                 <div data-state-based-visibility="program-is-selected">
                     {{
                         text_item.render({
                             'label': 'Median monthly first-year salary of this program\'s graduates',
-                            'value': '$0',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="salary_monthly"'
+                            'data_attribute': 'data-debt-calculations="monthly_salary"'
                         })
                     }}
                 </div>
@@ -328,9 +328,9 @@
                     {{
                         text_item.render({
                             'label': 'Median monthly salary of this school\'s recent students',
-                            'value': '$0',
+                            'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-financial-item="salary_monthly"'
+                            'data_attribute': 'data-debt-calculations="monthly_salary"'
                         })
                     }}
                 </div>
@@ -347,17 +347,17 @@
                 {{
                     text_item.render({
                         'label': 'Average (or estimated) monthly expenses',
-                        'value': '$0',
+                        'value': '',
                         'type': 'text',
-                        'data_attribute': 'data-expenses-item="total_expenses"'
+                        'data_attribute': 'data-debt-calculations="monthly_expenses"'
                     })
                 }}
                 {{
                     text_item.render({
                         'label': 'Additional money needed or left over',
-                        'value': '$0',
+                        'value': '',
                         'type': 'text',
-                        'data_attribute': 'data-expenses-item="total_remainder"'
+                        'data_attribute': 'data-debt-calculations="remainder"'
                     })
                 }}
                    
@@ -373,7 +373,7 @@
                             'label': 'Graduation rate',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-school-item="rateGraduationText"'
+                            'data_attribute': 'data-school-item="rateGraduation"'
                         })
                     }}
                     <div class="community-college-content">
@@ -382,7 +382,7 @@
                                 'label': 'Transfer to graduation rate',
                                 'value': '',
                                 'type': 'text',
-                                'data_attribute': 'data-school-item="???"'
+                                'data_attribute': 'data-school-item=""'
                             })
                         }}
                     </div>
@@ -391,7 +391,7 @@
                             'label': 'Default rate',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-school-item="defaultRateText"'
+                            'data_attribute': 'data-school-item="rateDefault"'
                         })
                     }}
                     {{
@@ -399,7 +399,7 @@
                             'label': 'Repayment rate',
                             'value': '',
                             'type': 'text',
-                            'data_attribute': 'data-school-item="rateRepay3yrText"'
+                            'data_attribute': 'data-school-item="rateRepay3yr"'
                         })
                     }}
                 </div>

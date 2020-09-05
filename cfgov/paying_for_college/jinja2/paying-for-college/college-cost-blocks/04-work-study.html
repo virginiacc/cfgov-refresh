@@ -8,15 +8,15 @@
                 'label': 'Maximum, estimated work-study income',
                 'id': 'workStudy__workStudy',
                 'value': '0',
-                'data_attribute': 'data-financial-item="workStudy_workStudy"'
+                'data_attribute': 'data-work-funding="workStudy_workStudy"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Maximum, estimated work-study income',
-                'value': '$99,999',
+                'value': '$0',
                 'type': 'total',
-                'data_attribute': 'data-financial-item="total_workStudy"'
+                'data_attribute': 'data-work-funding="total_workStudy"'
             })
         }}
         {{ notification.render(
@@ -48,7 +48,7 @@
                 'label': 'Fellowship funding',
                 'id': 'fellowAssist__fellowship',
                 'value': '0',
-                'data_attribute': 'data-financial-item="fellowAssist_fellowship"'
+                'data_attribute': 'data-work-funding="fellowship_fellow-or-assistantship"'
             })
         }}
         {{
@@ -56,15 +56,15 @@
                 'label': 'Assistantship funding',
                 'id': 'fellowAssist__assistantship',
                 'value': '0',
-                'data_attribute': 'data-financial-item="fellowAssist_assistantship"'
+                'data_attribute': 'data-work-funding="assistantship_fellow-or-assistantship"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Total fellowship and assistantship funding',
-                'value': '$99,999',
+                'value': '$0',
                 'type': 'total',
-                'data_attribute': 'data-financial-item="total_fellowAssist"'
+                'data_attribute': 'data-work-funding="total_fellow-or-assistantship"'
             })
         }}
 
@@ -73,7 +73,7 @@
                     'caution',
                     true,
                     '',
-                    '<b>Costs not covered:</b> <span data-financial-item="total_gap"></span>' | safe
+                    '<b>Costs not covered:</b> <span data-cost-calculations="uncoveredCosts"></span>' | safe
             ) }} 
         </div>
        

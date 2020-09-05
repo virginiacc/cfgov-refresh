@@ -28,7 +28,7 @@
                     'helper_text': 'Depends on which courses you take',
                     'id': 'costs__tuition-fees',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="dirCost_tuition"'
+                    'data_attribute': 'data-costs="tuition_direct"'
                 })
             }}
             {{
@@ -36,7 +36,7 @@
                     'label': 'Housing and meals',
                     'id': 'costs__room-board',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="dirCost_housing"'
+                    'data_attribute': 'data-costs="housing_direct"'
                 })
             }}
             {{
@@ -45,16 +45,16 @@
                     'helper_text': 'Anything else your school will bill you for',
                     'id': 'costs__otherDirect-board',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="dirCost_other"'
+                    'data_attribute': 'data-costs="other_direct"'
                 })
             }}
             {{
                 text_item.render({
                     'label': 'Estimated direct costs',
-                    'value': '$99,999',
+                    'value': '$0',
                     'type': 'subtotal',
                     'status': 'warning',
-                    'data_attribute': 'data-financial-item="total_directCosts"'
+                    'data_attribute': 'data-costs="total_direct"'
                 })
             }}
         </div>
@@ -68,7 +68,7 @@
                     'id': 'costs__books',
                     'helper_text': 'If your school will charge you directly for all books and supplies, put a zero and add these costs to "Additional direct costs" above.',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="indiCost_books"'
+                    'data_attribute': 'data-costs="books_indirect"'
                 })
             }}
             {{
@@ -77,7 +77,7 @@
                     'id': 'costs__transportation',
                     'helper_text': 'Public transit and personal vehicle costs (gas, tolls, maintenance) but not the purchase of a personal vehicle.',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="indiCost_transportation"'
+                    'data_attribute': 'data-costs="transportation_indirect"'
                 })
             }}
             {{
@@ -86,7 +86,7 @@
                     'id': 'costs__other',
                     'helper_text': 'Everything else! Ask the financial aid office what they include in this number and then check if it is realistic for you. Typically includes laundry and entertainment. Can also include health insurance, childcare, laptop, and disability-related expenses.',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="indiCost_other"'
+                    'data_attribute': 'data-costs="other_indirect"'
                 })
             }}
 
@@ -96,7 +96,7 @@
                     'value': '$99,999', 
                     'type': 'subtotal', 
                     'status': 'warning',    
-                    'data_attribute': 'data-financial-item="total_indirectCosts"'   
+                    'data_attribute': 'data-costs="total_indirect"'   
                 })  
             }}
             
@@ -106,17 +106,17 @@
                     'helper_text': 'Expenses not related to school and not eligible for financial aid, like car payments, credit card payments, helping family with bills, etc. Ask the financial aid office if you\'re not sure if an expense qualifies for financial aid.',
                     'id': 'costs__otherIndirect',
                     'value': '0',
-                    'data_attribute': 'data-financial-item="otherCost_additional"'
+                    'data_attribute': 'data-costs="other_additional"'
                 })
             }}
 
             {{
                 text_item.render({
                     'label': 'Your estimated costs this year',
-                    'value': '$99,999',
+                    'value': '$0',
                     'type': 'total',
                     'status': 'warning',
-                    'data_attribute': 'data-financial-item="total_costs"'
+                    'data_attribute': 'data-costs="total"'
                 })
             }}
         

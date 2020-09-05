@@ -8,7 +8,7 @@
                 'id': 'savings__personal',
                 'helper_text': 'Do you have money on hand to put towards school?',
                 'value': '0',
-                'data_attribute': 'data-financial-item="savings_personal"'
+                'data_attribute': 'data-personal-funding="personal_savings"'
             })
         }}
         {{
@@ -17,7 +17,7 @@
                 'id': 'savings__family',
                 'helper_text': 'Can your family chip in on your education this year?',
                 'value': '0',
-                'data_attribute': 'data-financial-item="savings_family"'
+                'data_attribute': 'data-personal-funding="family_savings"'
             })
         }}
         {{
@@ -26,7 +26,7 @@
                 'id': 'savings__collegeSavings',
                 'value': '0',
                 'helper_text': '529 college savings plans are tax-advantaged savings plans that help families save for higher education so they can be less reliant on student loans. <a href="https://studentaid.gov/resources/tax-benefits#529-plans" class="link-external">Learn more here.</a>',
-                'data_attribute': 'data-financial-item="savings_collegeSavings"'
+                'data_attribute': 'data-personal-funding="collegeSavings_savings"'
             })
         }}
         
@@ -35,7 +35,7 @@
                 'label': 'Estimated income from off-campus job',
                 'id': 'income__jobOffCampus',
                 'value': '0',
-                'data_attribute': 'data-financial-item="income_jobOffCampus"'
+                'data_attribute': 'data-personal-funding="jobOffCampus_income"'
             })
         }}
         {{
@@ -43,7 +43,7 @@
                 'label': 'Estimated income from on-campus job (not work-study)',
                 'id': 'income__jobOnCampus',
                 'value': '0',
-                'data_attribute': 'data-financial-item="income_jobOnCampus"'
+                'data_attribute': 'data-personal-funding="jobOnCampus_income"'
             })
         }}
         {{
@@ -51,7 +51,7 @@
                 'label': 'Employer tuition assistance or reimbursement',
                 'id': 'income__employerAssist',
                 'value': '0',
-                'data_attribute': 'data-financial-item="income_employerAssist"'
+                'data_attribute': 'data-personal-funding="employerAssistance_income"'
             })
         }}
         {{
@@ -59,15 +59,15 @@
                 'label': 'Other funding',
                 'id': 'income_otherFunding',
                 'value': '0',
-                'data_attribute': 'data-financial-item="income_otherFunding"'
+                'data_attribute': 'data-personal-funding="other_income"'
             })
         }}
         {{
             text_item.render({
                 'label': 'Total other sources',
-                'value': '$99,999',
+                'value': '$0',
                 'type': 'total',
-                'data_attribute': 'data-financial-item="total_otherResources"'
+                'data_attribute': 'data-personal-funding="total"'
             })
         }}
     </div>
@@ -77,7 +77,7 @@
                 'caution',
                 true,
                 '',
-                '<b>Costs not covered:</b> <span data-financial-item="total_gap"></span>' | safe
+                '<b>Costs not covered:</b> <span data-cost-calculations="uncoveredCosts"></span>' | safe
         ) }} 
     </div>
 

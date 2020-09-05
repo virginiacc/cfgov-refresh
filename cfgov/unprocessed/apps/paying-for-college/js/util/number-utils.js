@@ -78,15 +78,27 @@ function enforceRange( n, min, max ) {
     n = min;
     error = 'min';
   }
+  if ( error ) {
+    return {
+      value: n,
+      error: error
+    };
+  }
+  
+}
 
-  return {
-    value: n,
-    error: error
-  };
+/**
+ * isNumeric - Verify that a value contains only number or decimal characters
+ * @param {*} value Value to be checked
+ * @returns {Boolean} True if value only contains numeric characters, false otherwise
+ */
+function isNumeric( value ) {
+  return ( /^[\d.]+$/ ).test( value );
 }
 
 export {
   enforceRange,
   stringToNum,
-  decimalToPercentString
+  decimalToPercentString,
+  isNumeric
 };
